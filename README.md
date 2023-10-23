@@ -24,7 +24,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+It is necessary to develop a system for managing a product catalog, which will consist of several microservices using Nest.js and GraphQL. Each microservice will be responsible for specific functionality.
 
 ## Installation
 
@@ -45,29 +45,25 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Test
+## Requirements
 
-```bash
-# unit tests
-$ npm run test
+1. Dividing the system into the following microservices:
+   - The Product Catalog is responsible for managing products, creating them, viewing them, updating them, and deleting them.
+   - The shopping cart is responsible for managing the users' shopping cart.
+   - Orders is responsible for managing user orders.
+   - Use Graphql Federation to combine microservices under one gateway
+2. A GraphQL schema for each microservice with associated data types, queries, and mutations.
+   - One of the services should be written using the code first approach,
+   - One of the services should be written using the schema first approach
+3. Authorization and authentication
+   - JSON Web Tokens (JWT) and session mechanism.
+   - In addition to token verification, perform token validation
+   - Configure RBAC (role based access control) and/or PBAC (permission based access control)
+4. Query and data caching mechanism to improve performance.
 
-# e2e tests
-$ npm run test:e2e
+## Additionally
 
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+1. For typeorm, configure schema migrations for production builds (for development, you can use synchronize: true so as not to waste time)
+2. Set up microservice architecture using kafka and cqrs pattern
+   - Kafka can be run locally using docker and -cker-compose
+   - Set up a redis database for one of the microservices
