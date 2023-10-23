@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { CatalogModule } from './catalog.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { KafkaService } from '@libs/libs';
+import { KafkaService } from '@libs/common';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {

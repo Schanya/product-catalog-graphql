@@ -8,7 +8,7 @@ import { IntrospectAndCompose } from '@apollo/gateway';
 import { GatewayController } from './gateway.controller';
 import { GatewayService } from './gateway.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { KafkaModule } from '@libs/libs';
+import { KafkaModule } from '@libs/common';
 
 const DefinitionGraphQLModule =
   GraphQLModule.forRootAsync<ApolloGatewayDriverConfig>({
