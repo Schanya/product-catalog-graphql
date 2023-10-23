@@ -1,8 +1,11 @@
-import { NestFactory } from '@nestjs/core';
-import { CatalogModule } from './catalog.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { config } from 'dotenv';
+config();
+
 import { KafkaService } from '@libs/common';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { CatalogModule } from './catalog.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(CatalogModule);
@@ -10,12 +13,19 @@ async function bootstrap() {
   const rmqService = app.get<KafkaService>(KafkaService);
   const configService = app.get<ConfigService>(ConfigService);
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+
   app.connectMicroservice(
     rmqService.getOptions(configService.get<string>('KAFKA_NAME')),
   );
 
-  app.init();
-
   await app.startAllMicroservices();
+
+  await app.listen(configService.get<number>('PORT'));
 }
 bootstrap();

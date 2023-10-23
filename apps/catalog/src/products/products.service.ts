@@ -1,26 +1,57 @@
 import { Injectable } from '@nestjs/common';
 import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Product } from './entities/product.entity';
+import { Repository } from 'typeorm';
+import { FindProductInput } from './dto';
 
 @Injectable()
 export class ProductsService {
-  create(createProductInput: CreateProductInput) {
-    return 'This action adds a new product';
+  constructor(
+    @InjectRepository(Product)
+    private readonly productRepo: Repository<Product>,
+  ) {}
+
+  async create(createProductInput: CreateProductInput): Promise<Product> {
+    const productEntity = this.productRepo.create(createProductInput);
+    const createdProduct = await this.productRepo.save(productEntity);
+
+    return createdProduct;
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(findProductInput: FindProductInput): Promise<Product[]> {
+    const products = await this.productRepo.find({
+      where: { ...findProductInput },
+    });
+
+    return products;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async readById(id: number): Promise<Product> {
+    const product = await this.productRepo.findOne({ where: { id } });
+
+    return product;
   }
 
-  update(id: number, updateProductInput: UpdateProductInput) {
-    return `This action updates a #${id} product`;
+  async update(
+    id: number,
+    updateProductInput: UpdateProductInput,
+  ): Promise<Product> {
+    const existingProduct = await this.readById(id);
+    const productEntity = this.productRepo.create(updateProductInput);
+
+    const updatedProduct = await this.productRepo.save({
+      ...existingProduct,
+      ...productEntity,
+    });
+
+    return updatedProduct;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: number): Promise<boolean> {
+    const data = await this.productRepo.delete(id);
+
+    return data && data.affected > 0;
   }
 }

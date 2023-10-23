@@ -1,6 +1,6 @@
-import { Controller, Get, ParseIntPipe } from '@nestjs/common';
-import { CatalogService } from './catalog.service';
+import { Controller, ParseIntPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { CatalogService } from './catalog.service';
 
 @Controller()
 export class CatalogController {

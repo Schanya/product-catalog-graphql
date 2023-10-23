@@ -1,14 +1,13 @@
-import { Module } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { GraphQLModule } from '@nestjs/graphql';
 
-import { IntrospectAndCompose } from '@apollo/gateway';
+import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
 
+import { KafkaModule } from '@libs/common';
 import { GatewayController } from './gateway.controller';
 import { GatewayService } from './gateway.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { KafkaModule } from '@libs/common';
 
 const DefinitionGraphQLModule =
   GraphQLModule.forRootAsync<ApolloGatewayDriverConfig>({
@@ -26,26 +25,18 @@ const DefinitionGraphQLModule =
             },
           ],
         }),
+        buildService({ url }) {
+          return new RemoteGraphQLDataSource({
+            url,
+            willSendRequest({ request, context }) {
+              request.http.headers.set('authorization', context.authorization);
+            },
+          });
+        },
       },
     }),
     inject: [ConfigService],
   });
-
-const DefinitionKafkaClient = ClientsModule.register([
-  {
-    name: 'CATALOG_SERVICE',
-    transport: Transport.KAFKA,
-    options: {
-      client: {
-        clientId: 'catalog',
-        brokers: ['localhost:9092'],
-      },
-      consumer: {
-        groupId: 'catalog-consumer',
-      },
-    },
-  },
-]);
 
 @Module({
   imports: [
@@ -56,6 +47,7 @@ const DefinitionKafkaClient = ClientsModule.register([
     KafkaModule.register({
       name: 'CATALOG',
     }),
+    DefinitionGraphQLModule,
   ],
   controllers: [GatewayController],
   providers: [GatewayService],
