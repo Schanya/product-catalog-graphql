@@ -1,6 +1,3 @@
-import { config } from 'dotenv';
-config();
-
 import { KafkaService } from '@libs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
