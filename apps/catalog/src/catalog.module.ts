@@ -6,8 +6,9 @@ import {
   ApolloFederationDriver,
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
+import { APP_FILTER } from '@nestjs/core';
 
-import { KafkaModule } from '@libs/common';
+import { AllExceptionFilter, KafkaModule } from '@libs/common';
 
 import { CatalogController } from './catalog.controller';
 import { CatalogService } from './catalog.service';
@@ -42,6 +43,12 @@ const DefinitionConfigModule = ConfigModule.forRoot({
     KafkaModule,
   ],
   controllers: [CatalogController],
-  providers: [CatalogService],
+  providers: [
+    CatalogService,
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionFilter,
+    },
+  ],
 })
 export class CatalogModule {}

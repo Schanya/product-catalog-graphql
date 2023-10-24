@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { FindProductInput } from './dto';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class ProductsService {
@@ -39,6 +40,11 @@ export class ProductsService {
     updateProductInput: UpdateProductInput,
   ): Promise<Product> {
     const existingProduct = await this.readById(id);
+
+    if (!existingProduct) {
+      throw new RpcException("Specified product doesn't exist");
+    }
+
     const productEntity = this.productRepo.create(updateProductInput);
 
     const updatedProduct = await this.productRepo.save({
@@ -50,6 +56,12 @@ export class ProductsService {
   }
 
   async remove(id: number): Promise<boolean> {
+    const existingProduct = await this.readById(id);
+
+    if (!existingProduct) {
+      throw new RpcException("Specified product doesn't exist");
+    }
+
     const data = await this.productRepo.delete(id);
 
     return data && data.affected > 0;
