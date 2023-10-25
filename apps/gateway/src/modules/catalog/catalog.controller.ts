@@ -7,18 +7,18 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import { GatewayService } from './gateway.service';
+import { CatalogService } from './catalog.service';
 
 @Controller()
-export class GatewayController implements OnModuleInit {
+export class CatalogController implements OnModuleInit {
   constructor(
-    private readonly appService: GatewayService,
+    private readonly catalogService: CatalogService,
     @Inject('CATALOG') private readonly catalogClient: ClientKafka,
   ) {}
 
   @Get(':id')
   async getHello(@Param('id', ParseIntPipe) id: number): Promise<string> {
-    return await this.appService.getHello(id);
+    return await this.catalogService.getHello(id);
   }
 
   onModuleInit() {

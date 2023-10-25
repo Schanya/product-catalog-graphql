@@ -14,6 +14,10 @@ export const graphqlFederationOptions = (
           name: config.get<string>('CATALOG_NAME'),
           url: config.get<string>('CATALOG_URL'),
         },
+        {
+          name: config.get<string>('AUTH_NAME'),
+          url: config.get<string>('AUTH_URL'),
+        },
       ],
     }),
     buildService({ url }) {

@@ -4,11 +4,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 
-import { AllExceptionFilter, KafkaModule } from '@libs/common';
+import { AllExceptionFilter } from '@libs/common';
 
 import { graphqlFederationOptions } from './configs';
-import { GatewayController } from './gateway.controller';
-import { GatewayService } from './gateway.service';
+
+import { CoreModule } from './modules/core.module';
 
 const DefinitionGraphQLModule =
   GraphQLModule.forRootAsync<ApolloGatewayDriverConfig>({
@@ -23,19 +23,10 @@ const DefinitionConfigModule = ConfigModule.forRoot({
   envFilePath: './apps/gateway/.env',
 });
 
-const DefinitionKafkaModule = KafkaModule.register({
-  name: 'CATALOG',
-});
-
 @Module({
-  imports: [
-    DefinitionConfigModule,
-    DefinitionKafkaModule,
-    DefinitionGraphQLModule,
-  ],
-  controllers: [GatewayController],
+  imports: [DefinitionConfigModule, DefinitionGraphQLModule, CoreModule],
+  controllers: [],
   providers: [
-    GatewayService,
     {
       provide: APP_FILTER,
       useClass: AllExceptionFilter,
