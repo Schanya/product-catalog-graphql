@@ -6,7 +6,7 @@ import {
   Int,
   ResolveReference,
 } from '@nestjs/graphql';
-import { ParseIntPipe } from '@nestjs/common';
+import { ParseIntPipe, UseGuards } from '@nestjs/common';
 
 import { ProductsService } from './products.service';
 import { Product } from './entities';
@@ -16,7 +16,9 @@ import {
   FindProductInput,
   UpdateProductInput,
 } from './dto';
+import { JwtAuthGuard } from '@libs/common';
 
+@UseGuards(JwtAuthGuard)
 @Resolver(() => Product)
 export class ProductsResolver {
   constructor(private readonly productsService: ProductsService) {}

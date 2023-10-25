@@ -1,20 +1,21 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
-import { GraphQLModule } from '@nestjs/graphql';
 import {
   ApolloFederationDriver,
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { GraphQLModule } from '@nestjs/graphql';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { typeOrmOptions } from './configs';
+
+import { CoreModule } from './modules/core.module';
 import { KafkaModule } from '@libs/common';
 
 const DefinitionGraphQLModule =
   GraphQLModule.forRoot<ApolloFederationDriverConfig>({
     driver: ApolloFederationDriver,
+    context: ({ req, res }) => ({ req, res }),
     autoSchemaFile: {
       federation: 2,
     },
@@ -36,10 +37,10 @@ const DefinitionConfigModule = ConfigModule.forRoot({
     DefinitionTypeOrmModule,
     DefinitionConfigModule,
     DefinitionGraphQLModule,
-    UsersModule,
+    CoreModule,
     KafkaModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

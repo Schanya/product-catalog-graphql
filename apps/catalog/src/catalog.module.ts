@@ -8,7 +8,7 @@ import {
 } from '@nestjs/apollo';
 import { APP_FILTER } from '@nestjs/core';
 
-import { AllExceptionFilter, KafkaModule } from '@libs/common';
+import { AllExceptionFilter, JwtStrategy, KafkaModule } from '@libs/common';
 
 import { CatalogController } from './catalog.controller';
 import { CatalogService } from './catalog.service';
@@ -44,11 +44,12 @@ const DefinitionConfigModule = ConfigModule.forRoot({
   ],
   controllers: [CatalogController],
   providers: [
-    CatalogService,
     {
       provide: APP_FILTER,
       useClass: AllExceptionFilter,
     },
+    CatalogService,
+    JwtStrategy,
   ],
 })
 export class CatalogModule {}

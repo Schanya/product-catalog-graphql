@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { Token } from './token.entity';
+import { Token } from '../../jwt/entities/token.entity';
 
 @ObjectType()
 @Directive('@key(fields: "id")')

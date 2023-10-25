@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { User } from './user.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity({ name: 'tokens', synchronize: true })
 export class Token extends BaseEntity {
