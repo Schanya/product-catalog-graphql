@@ -12,6 +12,7 @@ import { User } from '../users/entities';
 
 import { SignUpInput } from './dto';
 import { JwtResponse } from './responses';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -30,23 +31,29 @@ export class AuthService {
     throw new UnauthorizedException('Incorrect email or password');
   }
 
-  async signUp(signUpInput: SignUpInput): Promise<JwtResponse> {
-    const user = await this.createLocalUser(signUpInput);
+  async signUp(
+    signUpInput: SignUpInput,
+    transaction: EntityManager,
+  ): Promise<JwtResponse> {
+    const user = await this.createLocalUser(signUpInput, transaction);
 
-    const tokens = await this.signIn(user);
+    const tokens = await this.signIn(user, transaction);
 
     return tokens;
   }
 
-  async signIn(user: User): Promise<JwtResponse> {
+  async signIn(user: User, transaction: EntityManager): Promise<JwtResponse> {
     const jwts = await this.generateJwts(user.id, user.role);
 
-    await this.jwtService.saveJwt(user.id, jwts.refreshToken);
+    await this.jwtService.saveJwt(user, jwts.refreshToken, transaction);
 
     return jwts;
   }
 
-  private async createLocalUser(signUpInput: SignUpInput): Promise<User> {
+  private async createLocalUser(
+    signUpInput: SignUpInput,
+    transaction: EntityManager,
+  ): Promise<User> {
     const existiongUser = await this.userSerivce.readByEmail(signUpInput.email);
 
     if (existiongUser) {
@@ -61,7 +68,7 @@ export class AuthService {
       passwordSalt,
     };
 
-    const user = await this.userSerivce.create(createUserinput);
+    const user = await this.userSerivce.create(createUserinput, transaction);
 
     return user;
   }

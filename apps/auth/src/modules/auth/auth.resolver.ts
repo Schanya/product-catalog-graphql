@@ -1,11 +1,16 @@
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 
-import { UserParam } from '@libs/common';
+import {
+  TransactionInterceptor,
+  TransactionParam,
+  UserParam,
+} from '@libs/common';
 
 import { User } from '../users/entities';
 import { AuthService } from './auth.service';
 
+import { EntityManager } from 'typeorm';
 import { SignInInput, SignUpInput } from './dto';
 import { LocalAuthGuard } from './guards';
 import { JwtResponse } from './responses';
@@ -14,20 +19,26 @@ import { JwtResponse } from './responses';
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
+  @UseInterceptors(TransactionInterceptor)
   @Mutation(() => JwtResponse)
-  async signUp(@Args('input') input: SignUpInput): Promise<JwtResponse> {
-    const secretData = await this.authService.signUp(input);
+  async signUp(
+    @Args('input') input: SignUpInput,
+    @TransactionParam() transaction: EntityManager,
+  ): Promise<JwtResponse> {
+    const secretData = await this.authService.signUp(input, transaction);
 
     return secretData;
   }
 
+  @UseInterceptors(TransactionInterceptor)
   @UseGuards(LocalAuthGuard)
   @Mutation(() => JwtResponse)
   async signIn(
     @Args('input') input: SignInInput,
     @UserParam() user: User,
+    @TransactionParam() transaction: EntityManager,
   ): Promise<JwtResponse> {
-    const secretData = await this.authService.signIn(user);
+    const secretData = await this.authService.signIn(user, transaction);
 
     return secretData;
   }

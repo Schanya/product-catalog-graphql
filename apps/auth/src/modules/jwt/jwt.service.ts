@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService as NestJwtService } from '@nestjs/jwt';
 
-import { JwtPayloadInput } from '@libs/common';
+import { JwtPayloadInput, getRepositoryFromTransaction } from '@libs/common';
 import { Token } from './entities';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { parseTokenExpiration } from './utils';
+import { User } from '../users/entities';
 
 @Injectable()
 export class JwtService {
@@ -37,8 +38,14 @@ export class JwtService {
     return refreshToken;
   }
 
-  public async saveJwt(userId: number, refreshToken: string): Promise<Token> {
-    const user = await this.userService.readById(userId);
+  public async saveJwt(
+    user: User,
+    refreshToken: string,
+    transaction?: EntityManager,
+  ): Promise<Token> {
+    const tokenRepository = transaction
+      ? await getRepositoryFromTransaction(transaction, Token)
+      : this.tokenRepository;
 
     const existingTokenExpiration = this.config.get<string>(
       'REFRESH_TOKEN_EXPIRED',
@@ -47,16 +54,13 @@ export class JwtService {
     const tokenExpiration = parseTokenExpiration(existingTokenExpiration);
     const expirationDate = new Date(new Date().getTime() + tokenExpiration);
 
-    const tokenEntity = this.tokenRepository.create({
+    const tokenEntity = tokenRepository.create({
       refreshToken,
       expirationDate,
       user,
     });
 
-    await this.tokenRepository.save(tokenEntity);
-
-    user.tokens.push(tokenEntity);
-    await user.save();
+    await tokenRepository.save(tokenEntity);
 
     return tokenEntity;
   }

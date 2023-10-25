@@ -5,6 +5,7 @@ export * from './filters/all-exception.filter';
 
 export * from './dto/jwt-payload.input';
 
+export * from './decorators/transaction.decorator';
 export * from './decorators/user.decorator';
 
 export * from './constants/roles.constant';
@@ -12,3 +13,7 @@ export * from './constants/roles.constant';
 export * from './guards/jwt.guard';
 
 export * from './strategies/jwt.strategy';
+
+export * from './interceptors/transaction.interceptor';
+
+export * from './utils/get-repo-from-transaction.util';

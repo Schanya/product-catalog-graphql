@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
+
+import { Role, getRepositoryFromTransaction } from '@libs/common';
+
 import { CreateUserInput, FindUserInput } from './dto';
 import { User } from './entities';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Role } from '@libs/common';
 
 @Injectable()
 export class UsersService {
@@ -11,13 +13,20 @@ export class UsersService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(createUserInput: CreateUserInput): Promise<User> {
-    const userEntity = this.userRepository.create({
+  async create(
+    createUserInput: CreateUserInput,
+    transaction?: EntityManager,
+  ): Promise<User> {
+    const userRepository = transaction
+      ? await getRepositoryFromTransaction(transaction, User)
+      : this.userRepository;
+
+    const userEntity = userRepository.create({
       ...createUserInput,
       role: Role.USER,
     });
 
-    const savedUser = await this.userRepository.save(userEntity);
+    const savedUser = await userRepository.save(userEntity);
 
     return savedUser;
   }
