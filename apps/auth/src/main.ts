@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { KafkaService } from '@libs/common';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +17,8 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
+  app.use(cookieParser());
 
   app.connectMicroservice(
     rmqService.getOptions(configService.get<string>('KAFKA_NAME')),

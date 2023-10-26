@@ -1,6 +1,7 @@
-import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
+import { IntrospectAndCompose } from '@apollo/gateway';
 import { ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { ConfigService } from '@nestjs/config';
+import { GraphQLDataSource } from './graphql-data-source.config';
 
 export const graphqlFederationOptions = (
   config: ConfigService,
@@ -20,13 +21,6 @@ export const graphqlFederationOptions = (
         },
       ],
     }),
-    buildService({ url }) {
-      return new RemoteGraphQLDataSource({
-        url,
-        willSendRequest({ request, context }) {
-          request.http.headers.set('authorization', context.authorization);
-        },
-      });
-    },
+    buildService: (args) => new GraphQLDataSource(args),
   },
 });

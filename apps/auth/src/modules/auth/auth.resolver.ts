@@ -1,5 +1,7 @@
-import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Response } from 'express';
+import { EntityManager } from 'typeorm';
 
 import {
   TransactionInterceptor,
@@ -10,10 +12,10 @@ import {
 import { User } from '../users/entities';
 import { AuthService } from './auth.service';
 
-import { EntityManager } from 'typeorm';
 import { SignInInput, SignUpInput } from './dto';
 import { LocalAuthGuard } from './guards';
 import { JwtResponse } from './responses';
+import { setCookie } from './utils';
 
 @Resolver(() => JwtResponse)
 export class AuthResolver {
@@ -24,8 +26,11 @@ export class AuthResolver {
   async signUp(
     @Args('input') input: SignUpInput,
     @TransactionParam() transaction: EntityManager,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<JwtResponse> {
     const secretData = await this.authService.signUp(input, transaction);
+
+    setCookie(res, secretData);
 
     return secretData;
   }
@@ -37,8 +42,11 @@ export class AuthResolver {
     @Args('input') input: SignInInput,
     @UserParam() user: User,
     @TransactionParam() transaction: EntityManager,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<JwtResponse> {
     const secretData = await this.authService.signIn(user, transaction);
+
+    setCookie(res, secretData);
 
     return secretData;
   }
