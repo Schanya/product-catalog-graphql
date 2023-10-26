@@ -8,9 +8,10 @@ import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 
 import { LocalStrategy } from './strategies';
+import { SessionSerializer } from './utils';
 
 @Module({
-  imports: [PassportModule, UsersModule, JwtModule],
-  providers: [AuthResolver, AuthService, LocalStrategy],
+  imports: [PassportModule.register({ session: true }), UsersModule, JwtModule],
+  providers: [AuthResolver, AuthService, LocalStrategy, SessionSerializer],
 })
 export class AuthModule {}

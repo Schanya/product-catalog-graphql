@@ -11,6 +11,7 @@ export * from './decorators/user.decorator';
 export * from './constants/roles.constant';
 
 export * from './guards/jwt.guard';
+export * from './guards/session.guard';
 
 export * from './strategies/jwt.strategy';
 
