@@ -1,18 +1,20 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 
 import { compare, genSalt, hash } from 'bcrypt';
 
-import { UsersService } from '../users/users.service';
 import { JwtService } from '../jwt/jwt.service';
 import { User } from '../users/entities';
+import { UsersService } from '../users/users.service';
 
+import { JwtPayloadInput } from '@libs/common';
+import { EntityManager } from 'typeorm';
 import { SignUpInput } from './dto';
 import { JwtResponse } from './responses';
-import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -48,6 +50,47 @@ export class AuthService {
     await this.jwtService.saveJwt(user, jwts.refreshToken, transaction);
 
     return jwts;
+  }
+
+  async refreshTokens(
+    user: JwtPayloadInput,
+    refreshToken: string,
+    transaction: EntityManager,
+  ): Promise<JwtResponse> {
+    const token = await this.jwtService.getJwt(user.id, refreshToken);
+
+    if (!token) {
+      await this.jwtService.deleteAllJwt(user.id, transaction);
+
+      throw new UnauthorizedException({
+        message: 'Unauthorized user',
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    if (token.expirationDate < new Date()) {
+      await this.jwtService.deleteJwt(user.id, refreshToken, transaction);
+
+      throw new UnauthorizedException({
+        message: `Token expired`,
+        statusCode: HttpStatus.UNAUTHORIZED,
+      });
+    }
+
+    await this.jwtService.deleteJwt(user.id, refreshToken, transaction);
+
+    const secretData = await this.generateJwts(user.id, user.role);
+    await this.jwtService.saveJwt(user, secretData.refreshToken, transaction);
+
+    return secretData;
+  }
+
+  async logout(
+    user: JwtPayloadInput,
+    refreshToken: string,
+    transaction: EntityManager,
+  ): Promise<void> {
+    await this.jwtService.deleteJwt(user.id, refreshToken, transaction);
   }
 
   private async createLocalUser(

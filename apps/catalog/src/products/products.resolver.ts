@@ -1,22 +1,16 @@
-import {
-  Resolver,
-  Query,
-  Mutation,
-  Args,
-  Int,
-  ResolveReference,
-} from '@nestjs/graphql';
 import { ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
-import { ProductsService } from './products.service';
+import { JwtAuthGuard, SessionGuard } from '@libs/common';
+
 import { Product } from './entities';
+import { ProductsService } from './products.service';
 
 import {
   CreateProductInput,
   FindProductInput,
   UpdateProductInput,
 } from './dto';
-import { JwtAuthGuard } from '@libs/common';
 
 @UseGuards(JwtAuthGuard)
 @Resolver(() => Product)

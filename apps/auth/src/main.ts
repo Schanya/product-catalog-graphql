@@ -1,8 +1,10 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { KafkaService } from '@libs/common';
-import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+
+import { KafkaService } from '@libs/common';
+import { AppModule } from './app.module';
+
 import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
 import * as passport from 'passport';
@@ -27,6 +29,9 @@ async function bootstrap() {
       secret: 'keyboard',
       resave: false,
       saveUninitialized: false,
+      cookie: {
+        maxAge: 3.6e6,
+      },
     }),
   );
   app.use(passport.initialize());

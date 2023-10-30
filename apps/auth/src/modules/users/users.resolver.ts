@@ -1,16 +1,19 @@
-import { Resolver, Query, Args, ResolveReference } from '@nestjs/graphql';
 import { ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Args, Query, ResolveReference, Resolver } from '@nestjs/graphql';
 
-import { UsersService } from './users.service';
-import { User } from './entities/user.entity';
+import { Role, Roles, SessionGuard } from '@libs/common';
+import { RolesGuard } from '@libs/common/guards/role.guard';
+
 import { FindUserInput } from './dto';
-import { AuthenticatedGuard } from '@libs/common';
+import { User } from './entities';
+import { UsersService } from './users.service';
 
+@Roles(Role.ADMIN)
+@UseGuards(SessionGuard, RolesGuard)
 @Resolver(() => User)
 export class UsersResolver {
   constructor(private readonly userService: UsersService) {}
 
-  @UseGuards(AuthenticatedGuard)
   @Query(() => [User])
   async readAll(
     @Args('input', { nullable: true }) findUserInput: FindUserInput,

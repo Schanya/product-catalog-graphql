@@ -3,12 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService as NestJwtService } from '@nestjs/jwt';
 
 import { JwtPayloadInput, getRepositoryFromTransaction } from '@libs/common';
-import { Token } from './entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
+import { Token } from './entities';
 import { parseTokenExpiration } from './utils';
-import { User } from '../users/entities';
 
 @Injectable()
 export class JwtService {
@@ -39,7 +38,7 @@ export class JwtService {
   }
 
   public async saveJwt(
-    user: User,
+    user: JwtPayloadInput,
     refreshToken: string,
     transaction?: EntityManager,
   ): Promise<Token> {
@@ -63,5 +62,48 @@ export class JwtService {
     await tokenRepository.save(tokenEntity);
 
     return tokenEntity;
+  }
+
+  public async getJwt(userId: number, refreshToken: string): Promise<Token> {
+    const token = await this.tokenRepository.findOne({
+      where: {
+        user: { id: userId },
+        refreshToken,
+      },
+    });
+
+    return token;
+  }
+
+  async deleteJwt(
+    userId: number,
+    refreshToken: string,
+    transaction?: EntityManager,
+  ): Promise<boolean> {
+    const tokenRepository = transaction
+      ? await getRepositoryFromTransaction(transaction, Token)
+      : this.tokenRepository;
+
+    const data = await tokenRepository.delete({
+      user: { id: userId },
+      refreshToken,
+    });
+
+    return data && data.affected > 0;
+  }
+
+  async deleteAllJwt(
+    userId: number,
+    transaction?: EntityManager,
+  ): Promise<number> {
+    const tokenRepository = transaction
+      ? await getRepositoryFromTransaction(transaction, Token)
+      : this.tokenRepository;
+
+    const data = await tokenRepository.delete({
+      user: { id: userId },
+    });
+
+    return data.affected;
   }
 }

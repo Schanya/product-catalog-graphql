@@ -1,12 +1,12 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { GraphQLModule } from '@nestjs/graphql';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   ApolloFederationDriver,
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
+import { GraphQLModule } from '@nestjs/graphql';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AllExceptionFilter, JwtStrategy, KafkaModule } from '@libs/common';
 
@@ -18,6 +18,7 @@ import { ProductsModule } from './products/products.module';
 const DefinitionGraphQLModule =
   GraphQLModule.forRoot<ApolloFederationDriverConfig>({
     driver: ApolloFederationDriver,
+    context: ({ req, res }) => ({ req, res }),
     autoSchemaFile: {
       federation: 2,
     },

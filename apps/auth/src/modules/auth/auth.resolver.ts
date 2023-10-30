@@ -4,6 +4,7 @@ import { Response } from 'express';
 import { EntityManager } from 'typeorm';
 
 import {
+  JwtPayloadInput,
   TransactionInterceptor,
   TransactionParam,
   UserParam,
@@ -13,15 +14,16 @@ import { User } from '../users/entities';
 import { AuthService } from './auth.service';
 
 import { SignInInput, SignUpInput } from './dto';
-import { LocalAuthGuard } from './guards';
+import { LocalAuthGuard, RefreshGuard } from './guards';
 import { JwtResponse } from './responses';
-import { setCookie } from './utils';
+import { sessionDestroy, setCookie } from './utils';
+import { TokensFromRequest } from './decorators';
 
+@UseInterceptors(TransactionInterceptor)
 @Resolver(() => JwtResponse)
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @UseInterceptors(TransactionInterceptor)
   @Mutation(() => JwtResponse)
   async signUp(
     @Args('input') input: SignUpInput,
@@ -35,7 +37,6 @@ export class AuthResolver {
     return secretData;
   }
 
-  @UseInterceptors(TransactionInterceptor)
   @UseGuards(LocalAuthGuard)
   @Mutation(() => JwtResponse)
   async signIn(
@@ -49,5 +50,40 @@ export class AuthResolver {
     setCookie(res, secretData);
 
     return secretData;
+  }
+
+  @UseGuards(RefreshGuard)
+  @Mutation(() => JwtResponse)
+  async refreshTokens(
+    @UserParam() user: JwtPayloadInput,
+    @TokensFromRequest('refreshToken') oldRefreshToken: string,
+    @TransactionParam() transaction: EntityManager,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<JwtResponse> {
+    const secretData = await this.authService.refreshTokens(
+      user,
+      oldRefreshToken,
+      transaction,
+    );
+
+    setCookie(res, secretData);
+
+    return secretData;
+  }
+
+  @UseGuards(RefreshGuard)
+  @Mutation(() => Boolean)
+  async logout(
+    @UserParam() user: JwtPayloadInput,
+    @TokensFromRequest() refreshToken: string,
+    @TransactionParam() transaction: EntityManager,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<boolean> {
+    await this.authService.logout(user, refreshToken, transaction);
+
+    setCookie(res, null);
+    sessionDestroy(res);
+
+    return true;
   }
 }
