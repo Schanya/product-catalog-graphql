@@ -4,16 +4,13 @@ import {
 } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AllExceptionFilter, JwtStrategy, KafkaModule } from '@libs/common';
-
-import { CatalogController } from './catalog.controller';
-import { CatalogService } from './catalog.service';
 import { typeOrmOptions } from './configs';
-import { ProductsModule } from './products/products.module';
+
+import { CoreModule } from './modules/core.module';
+import { KafkaModule } from '@libs/common';
 
 const DefinitionGraphQLModule =
   GraphQLModule.forRoot<ApolloFederationDriverConfig>({
@@ -32,7 +29,7 @@ const DefinitionTypeOrmModule = TypeOrmModule.forRootAsync({
 
 const DefinitionConfigModule = ConfigModule.forRoot({
   isGlobal: true,
-  envFilePath: './apps/catalog/.env',
+  envFilePath: './apps/basket/.env',
 });
 
 @Module({
@@ -40,18 +37,10 @@ const DefinitionConfigModule = ConfigModule.forRoot({
     DefinitionTypeOrmModule,
     DefinitionConfigModule,
     DefinitionGraphQLModule,
-    ProductsModule,
+    CoreModule,
     KafkaModule,
   ],
-  controllers: [CatalogController],
-  providers: [
-    {
-      provide: APP_FILTER,
-      useClass: AllExceptionFilter,
-    },
-    CatalogService,
-    JwtStrategy,
-  ],
-  exports: [CatalogService],
+  controllers: [],
+  providers: [],
 })
-export class CatalogModule {}
+export class AppModule {}

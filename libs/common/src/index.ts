@@ -21,3 +21,4 @@ export * from './interceptors/transaction.interceptor';
 
 export * from './utils/get-repo-from-transaction.util';
 export * from './utils/session-serializer.util';
+export * from './utils/send-message.util';
