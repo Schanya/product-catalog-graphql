@@ -10,7 +10,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmOptions } from './configs';
 
 import { CoreModule } from './modules/core.module';
-import { KafkaModule } from '@libs/common';
+import { AllExceptionFilter, KafkaModule } from '@libs/common';
+import { APP_FILTER } from '@nestjs/core';
 
 const DefinitionGraphQLModule =
   GraphQLModule.forRoot<ApolloFederationDriverConfig>({
@@ -41,6 +42,11 @@ const DefinitionConfigModule = ConfigModule.forRoot({
     KafkaModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

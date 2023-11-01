@@ -30,38 +30,29 @@ export class UsersProductsService {
     putProductInput: PutProductInput,
     payload: JwtPayloadInput,
   ): Promise<UsersProducts> {
-    const product = (await this.productService.doesProductExist(
-      putProductInput.id,
-    ))
-      ? await this.productService.readById(putProductInput.id)
-      : await this.productService.create(putProductInput.id);
+    const product = await this.productService.createOrGet(putProductInput.id);
+    const user = await this.userService.createOrGet(payload.id);
 
-    const user = (await this.userService.doesUserExist(payload.id))
-      ? await this.userService.readById(payload.id)
-      : await this.userService.create(payload.id);
-
-    await this.checkTotalAmount(product, putProductInput.amount);
-
-    const userProduct = await this.usersProductsRepository.findOne({
+    const existedUserProduct = await this.usersProductsRepository.findOne({
       where: { userId: user.id, productId: product.id },
     });
 
-    const amount = userProduct
-      ? userProduct.amount + putProductInput.amount
-      : putProductInput.amount;
+    await this.checkTotalAmount(product, putProductInput.amount);
 
-    const createdUserProduct = userProduct
-      ? await this.update(user.id, product.id, { amount })
+    const createdUserProduct = existedUserProduct
+      ? await this.update(existedUserProduct, {
+          amount: putProductInput.amount,
+        })
       : await this.create({
           userId: user.id,
           productId: product.id,
-          amount,
+          amount: putProductInput.amount,
         });
 
     return createdUserProduct;
   }
 
-  async create(
+  private async create(
     createUserProductInput: CreateUserProductInput,
   ): Promise<UsersProducts> {
     const userProductEntity = this.usersProductsRepository.create(
@@ -74,15 +65,10 @@ export class UsersProductsService {
     return userProduct;
   }
 
-  async update(
-    userId: number,
-    productId: number,
+  private async update(
+    userProduct: UsersProducts,
     updateUserProduct: UpdateUserProductInput,
   ): Promise<UsersProducts> {
-    const userProduct = await this.usersProductsRepository.findOne({
-      where: { userId, productId },
-    });
-
     userProduct.amount = updateUserProduct.amount;
 
     await userProduct.save();

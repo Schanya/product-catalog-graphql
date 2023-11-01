@@ -29,7 +29,15 @@ export class UserService {
     return createdUser;
   }
 
-  async doesUserExist(id: number): Promise<Boolean> {
+  async createOrGet(id: number): Promise<User> {
+    const user = (await this.doesUserExist(id))
+      ? await this.readById(id)
+      : await this.create(id);
+
+    return user;
+  }
+
+  private async doesUserExist(id: number): Promise<Boolean> {
     const doesProductExist = await this.userRepository.exist({ where: { id } });
 
     return doesProductExist;

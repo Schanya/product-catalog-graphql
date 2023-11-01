@@ -40,6 +40,14 @@ export class ProductsService {
     return createdProduct;
   }
 
+  async createOrGet(id: number): Promise<Product> {
+    const product = (await this.doesProductExist(id))
+      ? await this.readById(id)
+      : await this.create(id);
+
+    return product;
+  }
+
   async doesProductExist(id: number): Promise<Boolean> {
     const product = await this.sendMessageToCotalog<Product>('GET_BY_ID', {
       id,

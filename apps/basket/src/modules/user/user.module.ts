@@ -5,11 +5,11 @@ import { JwtStrategy } from '@libs/common';
 
 import { User, UsersProducts } from './entities';
 
-import { UserResolver } from './user.resolver';
 import { UsersProductsResolver } from './user-product.resolver';
+import { UserResolver } from './user.resolver';
 
-import { UserService } from './user.service';
 import { UsersProductsService } from './user-product.service';
+import { UserService } from './user.service';
 
 import { ProductModule } from '../product/product.module';
 
