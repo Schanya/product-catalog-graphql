@@ -12,6 +12,7 @@ import { typeOrmOptions } from './configs';
 import { CoreModule } from './modules/core.module';
 import { AllExceptionFilter, KafkaModule } from '@libs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { MongooseModule } from '@nestjs/mongoose';
 
 const DefinitionGraphQLModule =
   GraphQLModule.forRoot<ApolloFederationDriverConfig>({
@@ -33,6 +34,15 @@ const DefinitionConfigModule = ConfigModule.forRoot({
   envFilePath: './apps/basket/.env',
 });
 
+// const DefinitionMongoModule = MongooseModule.forRootAsync({
+//   imports: [ConfigModule],
+//   useFactory: (config: ConfigService) => ({
+//     uri: config.get('MONGO_DB_CONNECTION'),
+//     dbName: 'basket_db',
+//   }),
+//   inject: [ConfigService],
+// });
+
 @Module({
   imports: [
     DefinitionTypeOrmModule,
@@ -40,6 +50,7 @@ const DefinitionConfigModule = ConfigModule.forRoot({
     DefinitionGraphQLModule,
     CoreModule,
     KafkaModule,
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/basket_db'),
   ],
   controllers: [],
   providers: [

@@ -1,16 +1,14 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ClientKafka, RpcException } from '@nestjs/microservices';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { sendMessage } from '@libs/common';
-
 import { Product } from './entities/product.entity';
+import { RpcException } from '@nestjs/microservices';
+import { CreateProductDto } from './dto';
 
 @Injectable()
 export class ProductsService {
   constructor(
-    @Inject('CATALOG') private readonly catalogClient: ClientKafka,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
   ) {}
@@ -21,55 +19,27 @@ export class ProductsService {
     return product;
   }
 
-  async create(id: number): Promise<Product> {
-    if (await this.doesProductExist(id)) {
+  async create(createProductDto: CreateProductDto): Promise<Product> {
+    if (await this.doesProductExist(createProductDto.id)) {
       throw new RpcException('Specified product already exists');
     }
-
-    const product = await this.sendMessageToCotalog<Product>('GET_BY_ID', {
-      id,
-    });
-
-    if (!product) {
-      throw new RpcException('Specified product does not exist in the catalog');
-    }
-
-    const productEntity = this.productRepository.create(product);
+    const productEntity = this.productRepository.create(createProductDto);
     const createdProduct = await this.productRepository.save(productEntity);
 
     return createdProduct;
   }
 
-  async createOrGet(id: number): Promise<Product> {
-    const product = (await this.doesProductExist(id))
-      ? await this.readById(id)
-      : await this.create(id);
-
-    return product;
+  async createIfNotExist(product: Product): Promise<void> {
+    if (!(await this.doesProductExist(product.id))) {
+      await this.create(product);
+    }
   }
 
   async doesProductExist(id: number): Promise<Boolean> {
-    const product = await this.sendMessageToCotalog<Product>('GET_BY_ID', {
-      id,
-    });
-
     const doesProductExist = await this.productRepository.exist({
-      where: { id: product.id },
+      where: { id },
     });
 
     return doesProductExist;
-  }
-
-  private async sendMessageToCotalog<T>(
-    pattern: string,
-    data: any,
-  ): Promise<T> {
-    const response = await sendMessage<T>({
-      client: this.catalogClient,
-      pattern,
-      data,
-    });
-
-    return response;
   }
 }

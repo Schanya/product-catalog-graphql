@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 
 import { Product } from '../../product/entities';
-import { User } from './user.entity';
+import { User } from '../../user/entities/user.entity';
 
 @ObjectType()
 @Directive('@key(fields: "id")')

@@ -1,8 +1,6 @@
-import { Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import { Resolver } from '@nestjs/graphql';
 
 import { Product } from './entities';
-import { UsersProducts } from '../user/entities';
-import { UsersProductsService } from '../user/user-product.service';
 
 @Resolver(() => Product)
 export class ProductResolver {

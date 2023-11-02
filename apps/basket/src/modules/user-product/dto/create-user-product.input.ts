@@ -7,7 +7,7 @@ export class CreateUserProductInput {
   @IsNumber()
   @IsOptional()
   @Min(1)
-  amount?: number = 1;
+  amount: number;
 
   @Field(() => Int)
   @IsNumber()

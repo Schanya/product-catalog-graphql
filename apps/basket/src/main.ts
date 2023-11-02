@@ -11,7 +11,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const rmqService = app.get<KafkaService>(KafkaService);
+  const kafkaService = app.get<KafkaService>(KafkaService);
   const configService = app.get<ConfigService>(ConfigService);
 
   app.useGlobalPipes(
@@ -24,7 +24,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.connectMicroservice(
-    rmqService.getOptions(configService.get<string>('KAFKA_NAME')),
+    kafkaService.getOptions(configService.get<string>('KAFKA_NAME')),
   );
 
   await app.startAllMicroservices();

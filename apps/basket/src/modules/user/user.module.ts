@@ -1,26 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { JwtStrategy } from '@libs/common';
-
-import { User, UsersProducts } from './entities';
-
-import { UsersProductsResolver } from './user-product.resolver';
+import { User } from './entities';
 import { UserResolver } from './user.resolver';
-
-import { UsersProductsService } from './user-product.service';
 import { UserService } from './user.service';
 
-import { ProductModule } from '../product/product.module';
-
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UsersProducts]), ProductModule],
-  providers: [
-    UserResolver,
-    UsersProductsResolver,
-    UserService,
-    UsersProductsService,
-    JwtStrategy,
-  ],
+  imports: [TypeOrmModule.forFeature([User])],
+  providers: [UserResolver, UserService],
+  exports: [UserService],
 })
 export class UserModule {}

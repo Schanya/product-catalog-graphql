@@ -29,12 +29,10 @@ export class UserService {
     return createdUser;
   }
 
-  async createOrGet(id: number): Promise<User> {
-    const user = (await this.doesUserExist(id))
-      ? await this.readById(id)
-      : await this.create(id);
-
-    return user;
+  async createIfNotExist(id: number): Promise<void> {
+    if (!(await this.doesUserExist(id))) {
+      await this.create(id);
+    }
   }
 
   private async doesUserExist(id: number): Promise<Boolean> {
