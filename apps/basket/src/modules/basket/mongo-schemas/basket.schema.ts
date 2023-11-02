@@ -3,6 +3,16 @@ import { HydratedDocument } from 'mongoose';
 
 export type BasketDocument = HydratedDocument<Basket>;
 
+export class Product {
+  title: string;
+
+  price: number;
+
+  currency: string;
+
+  quantity: number;
+}
+
 @Schema()
 export class Basket {
   @Prop()
@@ -13,16 +23,6 @@ export class Basket {
 
   @Prop()
   products?: Product[];
-}
-
-export class Product {
-  title: string;
-
-  price: number;
-
-  currency: string;
-
-  quantity: number;
 }
 
 export const BasketSchema = SchemaFactory.createForClass(Basket);

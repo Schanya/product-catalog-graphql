@@ -1,4 +1,4 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -9,7 +9,6 @@ import { UserService } from '../user/user.service';
 
 import { CreateUserProductInput, UpdateUserProductInput } from './dto';
 import { UsersProducts } from './entities';
-import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable({ scope: Scope.REQUEST })
 export class UsersProductsService {
@@ -18,7 +17,6 @@ export class UsersProductsService {
     private readonly userService: UserService,
     @InjectRepository(UsersProducts)
     private readonly usersProductsRepository: Repository<UsersProducts>,
-    @Inject('BASKET') private readonly basketClient: ClientKafka,
   ) {}
 
   async saveProductToBasket(

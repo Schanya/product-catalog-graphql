@@ -9,6 +9,5 @@ export class CreateBasketDto {
   totalPrice: number;
 
   @IsOptional()
-  //   @Type((prod) => CreateProductDto)
   product?: CreateProductDto[];
 }

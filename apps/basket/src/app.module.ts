@@ -49,8 +49,8 @@ const DefinitionConfigModule = ConfigModule.forRoot({
     DefinitionConfigModule,
     DefinitionGraphQLModule,
     CoreModule,
-    KafkaModule,
     MongooseModule.forRoot('mongodb://127.0.0.1:27017/basket_db'),
+    KafkaModule,
   ],
   controllers: [],
   providers: [
