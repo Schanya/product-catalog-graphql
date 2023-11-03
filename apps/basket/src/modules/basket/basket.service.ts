@@ -1,9 +1,9 @@
-import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Basket, Product } from './mongo-schemas';
-import { CreateBasketDto, UpdateBasketDto } from './dto';
 import { RpcException } from '@nestjs/microservices';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { CreateBasketDto, UpdateBasketDto } from './dto';
+import { Basket, Product } from './mongo-schemas';
 
 @Injectable()
 export class BasketService {
@@ -23,6 +23,45 @@ export class BasketService {
     createdBasket.save();
 
     return createdBasket;
+  }
+
+  async updateProductsInBasket(
+    product: Product,
+    users: [{ user_id: number; total_sum: number }],
+  ): Promise<void> {
+    await this.basketRepository.updateMany(
+      { 'products.id': product.id },
+      {
+        $set: {
+          'products.$.title': product.title,
+          'products.$.price': product.price,
+          'products.$.currency': product.currency,
+          'products.$.id': product.id,
+        },
+      },
+    );
+
+    const userIds = [];
+    const usersTotalSum = [];
+
+    users.forEach(
+      (user) => (
+        userIds.push(user.user_id), usersTotalSum.push(user.total_sum)
+      ),
+    );
+
+    await this.basketRepository.updateMany({ userId: { $in: userIds } }, [
+      {
+        $set: {
+          totalPrice: {
+            $arrayElemAt: [
+              usersTotalSum,
+              { $indexOfArray: [userIds, '$userId'] },
+            ],
+          },
+        },
+      },
+    ]);
   }
 
   async addProductToBasket(
@@ -52,20 +91,44 @@ export class BasketService {
       throw new RpcException('The specified cart basket not exist');
     }
 
+    const haveBasketProduct = await this.basketRepository.findOne({
+      userId,
+      'products.id': updateBasketDto.product.id,
+    });
+
+    if (haveBasketProduct) {
+      const existedProduct = Array.from(haveBasketProduct.products).find(
+        (product) => product.id == updateBasketDto.product.id,
+      );
+
+      const totalPrice =
+        haveBasketProduct.totalPrice -
+        existedProduct.price * existedProduct.quantity +
+        updateBasketDto.product.price * updateBasketDto.product.quantity;
+
+      const updatedBasket = await this.basketRepository.findOneAndUpdate(
+        { userId, 'products.id': updateBasketDto.product.id },
+        {
+          $set: {
+            'products.$': updateBasketDto.product,
+            totalPrice,
+          },
+        },
+      );
+
+      await updatedBasket.save();
+
+      return updatedBasket;
+    }
+
+    const totalPrice =
+      (doesBasketExist.totalPrice ?? 0) +
+      updateBasketDto.product.price * updateBasketDto.product.quantity;
+
     const updatedBasket = await this.basketRepository.findOneAndUpdate(
       { userId },
-      { $push: { products: updateBasketDto.product } },
+      { $push: { products: updateBasketDto.product }, $set: { totalPrice } },
     );
-
-    const updatedProducts = Array.from(updatedBasket.products);
-    updatedProducts.push(updateBasketDto.product);
-
-    const totalPrice = updatedProducts.reduce(
-      (sum, product) => ((sum += product.price * product.quantity), sum),
-      0,
-    );
-
-    updatedBasket.totalPrice = totalPrice;
 
     await updatedBasket.save();
 

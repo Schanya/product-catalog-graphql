@@ -6,7 +6,7 @@ import { ProductsService } from './products.service';
 import { KafkaModule } from '@libs/common';
 
 const DefinitionKafkaModule = KafkaModule.register({
-  name: 'BASKET',
+  name: 'CATALOG',
 });
 
 @Module({

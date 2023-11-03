@@ -13,7 +13,7 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @Inject('BASKET') private readonly basketClient: ClientKafka,
+    @Inject('CATALOG') private readonly catalogClient: ClientKafka,
   ) {}
 
   async create(createProductInput: CreateProductInput): Promise<Product> {
@@ -54,6 +54,12 @@ export class ProductsService {
       ...productEntity,
     });
 
+    await this.catalogClient
+      .emit('UPDATE_PRODUCT_IN_BASKET_PG', {
+        product: updatedProduct,
+      })
+      .toPromise();
+
     return updatedProduct;
   }
 
@@ -77,8 +83,8 @@ export class ProductsService {
 
     await this.checkTotalAmount(product, sendProductToBasketInput.quantity);
 
-    await this.basketClient
-      .emit('SEND_PRODUCT_TO_BASKET', {
+    await this.catalogClient
+      .emit('SEND_PRODUCT_TO_BASKET_PG', {
         product,
         userId: payload.id,
         amount: sendProductToBasketInput.quantity,

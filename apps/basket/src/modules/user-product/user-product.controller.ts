@@ -7,7 +7,7 @@ import { UsersProductsService } from './user-product.service';
 export class UsersProductsController {
   constructor(private readonly userProductService: UsersProductsService) {}
 
-  @MessagePattern('SEND_PRODUCT_TO_BASKET')
+  @MessagePattern('SEND_PRODUCT_TO_BASKET_PG')
   async saveProductToBasket(
     @Payload('userId', ParseIntPipe) userId: number,
     @Payload('product') product: Product,
@@ -18,5 +18,12 @@ export class UsersProductsController {
       userId,
       productAmount,
     );
+  }
+
+  @MessagePattern('UPDATE_PRODUCT_IN_BASKET_PG')
+  async updateProductsInBasket(
+    @Payload('product') product: Product,
+  ): Promise<void> {
+    await this.userProductService.updateProductsInBasket(product);
   }
 }

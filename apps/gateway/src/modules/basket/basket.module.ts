@@ -1,13 +1,8 @@
 import { Module } from '@nestjs/common';
-import { KafkaModule } from '@libs/common';
 import { BasketService } from './basket.service';
 
-const DefinitionKafkaModule = KafkaModule.register({
-  name: 'BASKET',
-});
-
 @Module({
-  imports: [DefinitionKafkaModule],
+  imports: [],
   controllers: [],
   providers: [BasketService],
   exports: [BasketService],

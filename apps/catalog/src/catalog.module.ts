@@ -41,7 +41,6 @@ const DefinitionConfigModule = ConfigModule.forRoot({
     DefinitionConfigModule,
     DefinitionGraphQLModule,
     ProductsModule,
-    KafkaModule,
   ],
   controllers: [CatalogController],
   providers: [

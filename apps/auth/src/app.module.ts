@@ -10,7 +10,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmOptions } from './configs';
 
 import { CoreModule } from './modules/core.module';
-import { KafkaModule } from '@libs/common';
 
 const DefinitionGraphQLModule =
   GraphQLModule.forRoot<ApolloFederationDriverConfig>({
@@ -38,7 +37,6 @@ const DefinitionConfigModule = ConfigModule.forRoot({
     DefinitionConfigModule,
     DefinitionGraphQLModule,
     CoreModule,
-    KafkaModule,
   ],
   controllers: [],
   providers: [],
