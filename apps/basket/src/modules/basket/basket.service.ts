@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateBasketDto, UpdateBasketDto } from './dto';
 import { Basket, Product } from './mongo-schemas';
+import { UpdateUserProductInput } from '../user-product/dto';
 
 @Injectable()
 export class BasketService {
@@ -13,6 +14,15 @@ export class BasketService {
     const basket = await this.basketRepository.findOne({ userId });
 
     return basket;
+  }
+
+  async delete(userId: number, productId: number): Promise<boolean> {
+    const deleteResult = await this.basketRepository.updateOne(
+      { userId },
+      { $pull: { products: { id: productId } } },
+    );
+
+    return deleteResult.acknowledged;
   }
 
   async create(createBasketDto: CreateBasketDto): Promise<Basket> {

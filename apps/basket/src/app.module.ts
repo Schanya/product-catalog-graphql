@@ -9,7 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { typeOrmOptions } from './configs';
 
-import { AllExceptionFilter, KafkaModule } from '@libs/common';
+import { AllExceptionFilter, JwtStrategy, KafkaModule } from '@libs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CoreModule } from './modules/core.module';
@@ -58,6 +58,7 @@ const DefinitionMongoModule = MongooseModule.forRootAsync({
       provide: APP_FILTER,
       useClass: AllExceptionFilter,
     },
+    JwtStrategy,
   ],
 })
 export class AppModule {}

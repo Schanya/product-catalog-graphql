@@ -7,9 +7,9 @@ import { ProductsService } from '../product/product.service';
 
 import { UserService } from '../user/user.service';
 
+import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { CreateUserProductInput, UpdateUserProductInput } from './dto';
 import { UsersProducts } from './entities';
-import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable({ scope: Scope.REQUEST })
 export class UsersProductsService {
@@ -52,6 +52,30 @@ export class UsersProductsService {
         amount,
       })
       .toPromise();
+  }
+
+  async delete(userId: number, productId: number): Promise<boolean> {
+    const existingUserProduct = await this.usersProductsRepository.findOne({
+      where: { userId, productId },
+    });
+
+    if (!existingUserProduct) {
+      throw new RpcException("Specified product doesn't exist in user basket");
+    }
+
+    const data = await this.usersProductsRepository.delete({
+      userId,
+      productId,
+    });
+
+    await this.catalogClient
+      .emit('DELETE_PRODUCT_IN_BASKET_MONGO', {
+        userId,
+        productId,
+      })
+      .toPromise();
+
+    return data.affected > 0;
   }
 
   private async create(

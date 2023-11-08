@@ -54,16 +54,16 @@ export class ProductsService {
     });
 
     const query = `
-  SELECT u.id AS user_id, SUM(p.price * up.amount) AS total_sum
-  FROM public.users AS u
-  JOIN public.users_products AS up ON u.id = up.user_id
-  JOIN public.products AS p ON p.id = up.product_id
-  WHERE u.id IN (
-    SELECT user_id
-    FROM public.users_products
-    WHERE product_id = ${id}
-  )
-  GROUP BY u.id;
+      SELECT u.id AS user_id, SUM(p.price * up.amount) AS total_sum
+      FROM public.users AS u
+      JOIN public.users_products AS up ON u.id = up.user_id
+      JOIN public.products AS p ON p.id = up.product_id
+      WHERE u.id IN (
+        SELECT user_id
+        FROM public.users_products
+        WHERE product_id = ${id}
+      )
+      GROUP BY u.id;
   `;
 
     const result = await this.productRepository.query(query);

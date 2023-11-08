@@ -2,6 +2,7 @@ import { Controller, ParseIntPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { BasketService } from './basket.service';
 import { Product } from './mongo-schemas';
+import { UpdateUserProductInput } from '../user-product/dto';
 
 @Controller()
 export class BasketController {
@@ -22,5 +23,13 @@ export class BasketController {
     @Payload('users') users: any,
   ): Promise<void> {
     await this.basketService.updateProductsInBasket(product, users);
+  }
+
+  @MessagePattern('DELETE_PRODUCT_IN_BASKET_MONGO')
+  async deleteProductsInBasket(
+    @Payload('productId') productId: number,
+    @Payload('userId') userId: number,
+  ): Promise<void> {
+    await this.basketService.delete(userId, productId);
   }
 }

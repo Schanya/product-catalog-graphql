@@ -26,7 +26,6 @@ export class Product extends BaseEntity {
   @Column({ type: 'integer' })
   quantity: number;
 
-  @Field(() => [User])
   @ManyToMany(() => User, (user) => user.products)
   users?: User[];
 }

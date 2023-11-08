@@ -5,6 +5,7 @@ import { KafkaModule } from '@libs/common';
 
 import { ProductModule } from '../product/product.module';
 import { UserModule } from '../user/user.module';
+import { BasketModule } from '../basket/basket.module';
 
 import { UsersProducts } from './entities';
 import { UsersProductsController } from './user-product.controller';
@@ -20,6 +21,7 @@ const DefinitionKafkaModule = KafkaModule.register({
     TypeOrmModule.forFeature([UsersProducts]),
     ProductModule,
     UserModule,
+    BasketModule,
     DefinitionKafkaModule,
   ],
   controllers: [UsersProductsController],
