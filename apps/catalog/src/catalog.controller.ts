@@ -1,19 +1,19 @@
-import { Controller, ParseIntPipe } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CatalogService } from './catalog.service';
+
+import { CatalogMessage } from '@libs/common';
+
 import { Product } from './products/entities';
+import { ProductsService } from './products/products.service';
 
 @Controller()
 export class CatalogController {
-  constructor(private readonly catalogService: CatalogService) {}
+  constructor(private readonly productService: ProductsService) {}
 
-  @MessagePattern('get-hello')
-  getHello(@Payload('id', ParseIntPipe) id: number): string {
-    return this.catalogService.getHello(id);
-  }
-
-  @MessagePattern('GET_BY_ID')
-  async readById(@Payload('id', ParseIntPipe) id: number): Promise<string> {
-    return JSON.stringify(await this.catalogService.readById(id));
+  @MessagePattern(CatalogMessage.PURCHASED_PRODUCT)
+  async purchasedProduct(
+    @Payload('products') products: Product[],
+  ): Promise<void> {
+    await this.productService.reduceAmountOfPurchasedProduct(products);
   }
 }

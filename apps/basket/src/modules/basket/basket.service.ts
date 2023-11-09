@@ -4,7 +4,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateBasketDto, UpdateBasketDto } from './dto';
 import { Basket, Product } from './mongo-schemas';
-import { UpdateUserProductInput } from '../user-product/dto';
 
 @Injectable()
 export class BasketService {
@@ -16,23 +15,13 @@ export class BasketService {
     return basket;
   }
 
-  async delete(userId: number, productId: number): Promise<boolean> {
+  async delete(userId: number, productIds: number[]): Promise<boolean> {
     const deleteResult = await this.basketRepository.updateOne(
       { userId },
-      { $pull: { products: { id: productId } } },
+      { $pull: { products: { id: { $in: productIds } } } },
     );
 
     return deleteResult.acknowledged;
-  }
-
-  async create(createBasketDto: CreateBasketDto): Promise<Basket> {
-    const createdBasket = await this.basketRepository.create(createBasketDto);
-
-    createdBasket.$set({ products: createBasketDto.product });
-
-    createdBasket.save();
-
-    return createdBasket;
   }
 
   async updateProductsInBasket(
@@ -48,6 +37,16 @@ export class BasketService {
           'products.$.currency': product.currency,
           'products.$.id': product.id,
         },
+      },
+    );
+
+    await this.basketRepository.updateMany(
+      {
+        'products.id': product.id,
+        'products.quantity': { $gt: product.quantity },
+      },
+      {
+        $set: { 'products.$.quantity': product.quantity },
       },
     );
 
@@ -91,7 +90,31 @@ export class BasketService {
     }
   }
 
-  async update(
+  async reduceAmountOfPurchasedProduct(products: Product[]): Promise<void> {
+    for (const product of products) {
+      await this.basketRepository.updateMany(
+        {
+          'products.id': product.id,
+          'products.quantity': { $gt: product.quantity },
+        },
+        {
+          $set: { 'products.$.quantity': product.quantity },
+        },
+      );
+    }
+  }
+
+  private async create(createBasketDto: CreateBasketDto): Promise<Basket> {
+    const createdBasket = await this.basketRepository.create(createBasketDto);
+
+    createdBasket.$set({ products: createBasketDto.product });
+
+    createdBasket.save();
+
+    return createdBasket;
+  }
+
+  private async update(
     updateBasketDto: UpdateBasketDto,
     userId: number,
   ): Promise<Basket> {

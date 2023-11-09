@@ -12,8 +12,8 @@ import { UsersProductsController } from './user-product.controller';
 import { UsersProductsResolver } from './user-product.resolver';
 import { UsersProductsService } from './user-product.service';
 
-const DefinitionKafkaModule = KafkaModule.register({
-  name: 'CATALOG',
+const DefinitionBasketKafkaModule = KafkaModule.register({
+  name: 'BASKET',
 });
 
 @Module({
@@ -22,9 +22,10 @@ const DefinitionKafkaModule = KafkaModule.register({
     ProductModule,
     UserModule,
     BasketModule,
-    DefinitionKafkaModule,
+    DefinitionBasketKafkaModule,
   ],
   controllers: [UsersProductsController],
   providers: [UsersProductsResolver, UsersProductsService],
+  exports: [UsersProductsService],
 })
 export class UserProductModule {}

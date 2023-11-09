@@ -2,12 +2,13 @@ import { Controller, ParseIntPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { Product } from '../product/entities';
 import { UsersProductsService } from './user-product.service';
+import { BasketMessage } from '@libs/common';
 
 @Controller()
 export class UsersProductsController {
   constructor(private readonly userProductService: UsersProductsService) {}
 
-  @MessagePattern('SEND_PRODUCT_TO_BASKET_PG')
+  @MessagePattern(BasketMessage.SEND_PG)
   async saveProductToBasket(
     @Payload('userId', ParseIntPipe) userId: number,
     @Payload('product') product: Product,
@@ -20,7 +21,7 @@ export class UsersProductsController {
     );
   }
 
-  @MessagePattern('UPDATE_PRODUCT_IN_BASKET_PG')
+  @MessagePattern(BasketMessage.UPDATE_PG)
   async updateProductsInBasket(
     @Payload('product') product: Product,
   ): Promise<void> {

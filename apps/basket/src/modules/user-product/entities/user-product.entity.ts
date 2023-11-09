@@ -32,13 +32,13 @@ export class UsersProducts extends BaseEntity {
   @Column({ type: 'int' })
   amount: number;
 
-  @Field(() => [User])
+  @Field(() => User)
   @ManyToOne(() => User, (user) => user.products)
   @JoinColumn([{ name: 'user_id', referencedColumnName: 'id' }])
-  users: User[];
+  users: User;
 
-  @Field(() => [Product])
+  @Field(() => Product)
   @ManyToOne(() => Product, (product) => product.users)
   @JoinColumn([{ name: 'product_id', referencedColumnName: 'id' }])
-  products: Product[];
+  products: Product;
 }

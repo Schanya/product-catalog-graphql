@@ -22,7 +22,7 @@ export class UsersProductsResolver {
   @Mutation(() => Boolean, { name: 'deleteProductInBasket' })
   async removeProduct(
     @UserParam() user: JwtPayloadInput,
-    @Args('productId', { type: () => Int }) productId: number,
+    @Args('productId', { type: () => [Int] }) productId: number[],
   ) {
     return await this.userProductService.delete(user.id, productId);
   }

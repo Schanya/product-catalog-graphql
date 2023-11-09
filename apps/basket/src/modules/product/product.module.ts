@@ -6,12 +6,12 @@ import { ProductResolver } from './product.resolver';
 import { ProductsService } from './product.service';
 import { KafkaModule } from '@libs/common';
 
-const DefinitionKafkaModule = KafkaModule.register({
-  name: 'CATALOG',
+const DefinitionBasketKafkaModule = KafkaModule.register({
+  name: 'BASKET',
 });
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product]), DefinitionKafkaModule],
+  imports: [TypeOrmModule.forFeature([Product]), DefinitionBasketKafkaModule],
   providers: [ProductResolver, ProductsService],
   exports: [ProductsService],
 })

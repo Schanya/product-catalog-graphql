@@ -3,17 +3,17 @@ import { CreateProductInput } from './dto/create-product.input';
 import { UpdateProductInput } from './dto/update-product.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { FindProductInput, SendProductToBasketInput } from './dto';
 import { ClientKafka, RpcException } from '@nestjs/microservices';
-import { JwtPayloadInput } from '@libs/common';
+import { BasketMessage, JwtPayloadInput } from '@libs/common';
 
 @Injectable()
 export class ProductsService {
   constructor(
+    @Inject('BASKET') private readonly basketClient: ClientKafka,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @Inject('CATALOG') private readonly catalogClient: ClientKafka,
   ) {}
 
   async create(createProductInput: CreateProductInput): Promise<Product> {
@@ -54,8 +54,8 @@ export class ProductsService {
       ...productEntity,
     });
 
-    await this.catalogClient
-      .emit('UPDATE_PRODUCT_IN_BASKET_PG', {
+    await this.basketClient
+      .emit(BasketMessage.UPDATE_PG, {
         product: updatedProduct,
       })
       .toPromise();
@@ -83,8 +83,8 @@ export class ProductsService {
 
     await this.checkTotalAmount(product, sendProductToBasketInput.quantity);
 
-    await this.catalogClient
-      .emit('SEND_PRODUCT_TO_BASKET_PG', {
+    await this.basketClient
+      .emit(BasketMessage.SEND_PG, {
         product,
         userId: payload.id,
         amount: sendProductToBasketInput.quantity,
@@ -92,6 +92,24 @@ export class ProductsService {
       .toPromise();
 
     return 'Sent successfully';
+  }
+
+  async reduceAmountOfPurchasedProduct(products: Product[]): Promise<void> {
+    const productIds = products.map((product) => product.id);
+
+    const existedProducts = await this.productRepository.find({
+      where: { id: In(productIds) },
+    });
+
+    const updatedPromises = existedProducts.map((existedProduct) => {
+      existedProduct.quantity = products.find(
+        (product) => product.id == existedProduct.id,
+      ).quantity;
+
+      existedProduct.save();
+    });
+
+    await Promise.all(updatedPromises);
   }
 
   private async checkTotalAmount(

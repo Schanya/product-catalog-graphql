@@ -1,6 +1,6 @@
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, MoreThan, Repository } from 'typeorm';
 
 import { Product } from '../product/entities';
 import { ProductsService } from '../product/product.service';
@@ -10,19 +10,92 @@ import { UserService } from '../user/user.service';
 import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { CreateUserProductInput, UpdateUserProductInput } from './dto';
 import { UsersProducts } from './entities';
+import { CreatePurchaseInput } from '../payment/dto';
+import { BasketMessage } from '@libs/common';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class UsersProductsService {
   constructor(
-    private readonly productService: ProductsService,
-    private readonly userService: UserService,
+    @Inject('BASKET') private readonly basketClient: ClientKafka,
     @InjectRepository(UsersProducts)
     private readonly usersProductsRepository: Repository<UsersProducts>,
-    @Inject('CATALOG') private readonly catalogClient: ClientKafka,
+    private readonly productService: ProductsService,
+    private readonly userService: UserService,
   ) {}
 
   async updateProductsInBasket(product: Product): Promise<void> {
+    await this.usersProductsRepository.update(
+      { amount: MoreThan(product.quantity) },
+      { amount: product.quantity },
+    );
     await this.productService.update(product, product.id);
+  }
+
+  async reduceAmountOfProducts(
+    createPurchaseInput: CreatePurchaseInput,
+    userId: number,
+  ): Promise<{ commonInfo: Product; amount: number }[]> {
+    const productIds = createPurchaseInput.productIds;
+
+    const paidProducts = await this.usersProductsRepository.find({
+      where: { userId, productId: In(productIds) },
+      relations: ['products'],
+    });
+
+    if (paidProducts.length !== createPurchaseInput.productIds.length) {
+      throw new RpcException("The specified product is not in the user's cart");
+    }
+
+    const isValidAmount = paidProducts.some(
+      (product) =>
+        product.amount == 0 || product.products.quantity < product.amount,
+    );
+
+    if (isValidAmount) {
+      throw new RpcException(
+        'Specified  quantity of the product is more than what is in the catalog',
+      );
+    }
+
+    await this.productService.updateProductsAmount(paidProducts);
+
+    const reducedProducts = await this.productService.readByIds(
+      createPurchaseInput.productIds,
+    );
+
+    await this.basketClient
+      .emit(BasketMessage.DELETE_MONGO, {
+        userId,
+        productIds,
+      })
+      .toPromise();
+
+    await this.basketClient
+      .emit(BasketMessage.REDUCE_MONGO, {
+        products: reducedProducts,
+      })
+      .toPromise();
+
+    const products = paidProducts.map((el) => ({
+      commonInfo: el.products,
+      amount: el.amount,
+    }));
+
+    return products;
+  }
+
+  async deleteAllPaidProducts(
+    createPurchaseInput: CreatePurchaseInput,
+    userId: number,
+  ): Promise<void> {
+    const productIds = createPurchaseInput.productIds;
+
+    const result = await this.usersProductsRepository.delete({
+      userId,
+      productId: In(productIds),
+    });
+
+    console.log(result);
   }
 
   async saveProductToBasket(
@@ -45,8 +118,8 @@ export class UsersProductsService {
           amount,
         });
 
-    await this.catalogClient
-      .emit('SEND_PRODUCT_TO_BASKET_MONGO', {
+    await this.basketClient
+      .emit(BasketMessage.SEND_MONGO, {
         product,
         userId,
         amount,
@@ -54,9 +127,9 @@ export class UsersProductsService {
       .toPromise();
   }
 
-  async delete(userId: number, productId: number): Promise<boolean> {
+  async delete(userId: number, productIds: number[]): Promise<boolean> {
     const existingUserProduct = await this.usersProductsRepository.findOne({
-      where: { userId, productId },
+      where: { userId, productId: In(productIds) },
     });
 
     if (!existingUserProduct) {
@@ -65,13 +138,13 @@ export class UsersProductsService {
 
     const data = await this.usersProductsRepository.delete({
       userId,
-      productId,
+      productId: In(productIds),
     });
 
-    await this.catalogClient
-      .emit('DELETE_PRODUCT_IN_BASKET_MONGO', {
+    await this.basketClient
+      .emit(BasketMessage.DELETE_MONGO, {
         userId,
-        productId,
+        productIds,
       })
       .toPromise();
 

@@ -1,23 +1,33 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { Product } from './entities/product.entity';
 import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { CreateProductDto, UpdateProductDto } from './dto';
+import { UsersProducts } from '../user-product/entities';
+import { BasketMessage } from '@libs/common';
 
 @Injectable()
 export class ProductsService {
   constructor(
+    @Inject('BASKET') private readonly basketClient: ClientKafka,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @Inject('CATALOG') private readonly catalogClient: ClientKafka,
   ) {}
 
   async readById(id: number): Promise<Product> {
     const product = await this.productRepository.findOne({ where: { id } });
 
     return product;
+  }
+
+  async readByIds(ids: number[]): Promise<Product[]> {
+    const products = await this.productRepository.find({
+      where: { id: In(ids) },
+    });
+
+    return products;
   }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
@@ -68,14 +78,32 @@ export class ProductsService {
 
     const result = await this.productRepository.query(query);
 
-    await this.catalogClient
-      .emit('UPDATE_PRODUCT_IN_BASKET_MONGO', {
+    await this.basketClient
+      .emit(BasketMessage.UPDATE_MONGO, {
         users: result,
         product: updateProductDto,
       })
       .toPromise();
 
     return updatedProduct;
+  }
+
+  async updateProductsAmount(paidProducts: UsersProducts[]): Promise<void> {
+    const productIds = paidProducts.map((paidProduct) => paidProduct.productId);
+
+    const products = await this.productRepository.find({
+      where: { id: In(productIds) },
+    });
+
+    const updatedPromises = products.map((product) => {
+      product.quantity -= paidProducts.find(
+        (el) => el.productId == product.id,
+      ).amount;
+
+      product.save();
+    });
+
+    await Promise.all(updatedPromises);
   }
 
   async doesProductExist(id: number): Promise<Boolean> {
