@@ -30,22 +30,6 @@ export class ProductsService {
     return products;
   }
 
-  async create(createProductDto: CreateProductDto): Promise<Product> {
-    if (await this.doesProductExist(createProductDto.id)) {
-      throw new RpcException('Specified product already exists');
-    }
-    const productEntity = this.productRepository.create(createProductDto);
-    const createdProduct = await this.productRepository.save(productEntity);
-
-    return createdProduct;
-  }
-
-  async createIfNotExist(product: Product): Promise<void> {
-    if (!(await this.doesProductExist(product.id))) {
-      await this.create(product);
-    }
-  }
-
   async update(
     updateProductDto: UpdateProductDto,
     id: number,
@@ -63,24 +47,8 @@ export class ProductsService {
       ...productEntity,
     });
 
-    const query = `
-      SELECT u.id AS user_id, SUM(p.price * up.amount) AS total_sum
-      FROM public.users AS u
-      JOIN public.users_products AS up ON u.id = up.user_id
-      JOIN public.products AS p ON p.id = up.product_id
-      WHERE u.id IN (
-        SELECT user_id
-        FROM public.users_products
-        WHERE product_id = ${id}
-      )
-      GROUP BY u.id;
-  `;
-
-    const result = await this.productRepository.query(query);
-
     await this.basketClient
       .emit(BasketMessage.UPDATE_MONGO, {
-        users: result,
         product: updateProductDto,
       })
       .toPromise();
@@ -88,7 +56,9 @@ export class ProductsService {
     return updatedProduct;
   }
 
-  async updateProductsAmount(paidProducts: UsersProducts[]): Promise<void> {
+  async updateProductsAmount(
+    paidProducts: UsersProducts[],
+  ): Promise<Product[]> {
     const productIds = paidProducts.map((paidProduct) => paidProduct.productId);
 
     const products = await this.productRepository.find({
@@ -96,21 +66,38 @@ export class ProductsService {
     });
 
     const updatedPromises = products.map((product) => {
-      product.quantity -= paidProducts.find(
+      const userAmount = paidProducts.find(
         (el) => el.productId == product.id,
       ).amount;
+
+      product.quantity -= userAmount;
 
       product.save();
     });
 
     await Promise.all(updatedPromises);
+
+    return products;
   }
 
-  async doesProductExist(id: number): Promise<Boolean> {
+  async createIfNotExist(product: Product): Promise<void> {
+    if (!(await this.doesProductExist(product.id))) {
+      await this.create(product);
+    }
+  }
+
+  private async doesProductExist(id: number): Promise<Boolean> {
     const doesProductExist = await this.productRepository.exist({
       where: { id },
     });
 
     return doesProductExist;
+  }
+
+  private async create(createProductDto: CreateProductDto): Promise<Product> {
+    const productEntity = this.productRepository.create(createProductDto);
+    const createdProduct = await this.productRepository.save(productEntity);
+
+    return createdProduct;
   }
 }

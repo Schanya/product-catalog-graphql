@@ -27,4 +27,11 @@ export class UsersProductsController {
   ): Promise<void> {
     await this.userProductService.updateProductsInBasket(product);
   }
+
+  @MessagePattern(BasketMessage.DELETE_PODUCT_PG)
+  async deleteProductInUsersBasket(
+    @Payload('productId') productId: number,
+  ): Promise<void> {
+    await this.userProductService.deleteProductIfDeletedInCatalog(productId);
+  }
 }

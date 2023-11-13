@@ -36,14 +36,20 @@ export class PaymentService {
         createPurchaseInput.productIds,
       );
 
-      await this.userProductService.deleteAllPaidProducts(
-        createPurchaseInput,
+      await this.userProductService.deleteProductsForUser(
         userId,
+        createPurchaseInput.productIds,
       );
 
       await this.catalogClient
         .emit(CatalogMessage.PURCHASED_PRODUCT, { products })
         .toPromise();
+
+      const promises = products.map((product) =>
+        this.userProductService.updateProductsAmountForEachUser(product),
+      );
+
+      await Promise.all(promises);
     }
 
     return url;

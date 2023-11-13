@@ -16,9 +16,6 @@ export class Basket {
   @Prop()
   userId: number;
 
-  @Prop({ name: 'total_price' })
-  totalPrice: number;
-
   @Prop()
   products?: Product[];
 }

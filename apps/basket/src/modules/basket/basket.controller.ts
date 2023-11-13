@@ -20,9 +20,8 @@ export class BasketController {
   @MessagePattern(BasketMessage.UPDATE_MONGO)
   async updateProductsInBasket(
     @Payload('product') product: Product,
-    @Payload('users') users: any,
   ): Promise<void> {
-    await this.basketService.updateProductsInBasket(product, users);
+    await this.basketService.updateProductForEachUser(product);
   }
 
   @MessagePattern(BasketMessage.DELETE_MONGO)
@@ -30,7 +29,7 @@ export class BasketController {
     @Payload('productIds') productIds: number[],
     @Payload('userId') userId: number,
   ): Promise<void> {
-    await this.basketService.delete(userId, productIds);
+    await this.basketService.deleteProductsFromBasket(userId, productIds);
   }
 
   @MessagePattern(BasketMessage.REDUCE_MONGO)
@@ -38,5 +37,12 @@ export class BasketController {
     @Payload('products') products: Product[],
   ): Promise<void> {
     await this.basketService.reduceAmountOfPurchasedProduct(products);
+  }
+
+  @MessagePattern(BasketMessage.DELETE_PODUCT_MONGO)
+  async deleteProductInUsersBasket(
+    @Payload('productId') productId: number,
+  ): Promise<void> {
+    await this.basketService.deleteProductIfDeletedInCatalog(productId);
   }
 }

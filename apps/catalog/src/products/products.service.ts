@@ -72,6 +72,12 @@ export class ProductsService {
 
     const data = await this.productRepository.delete(id);
 
+    await this.basketClient
+      .emit(BasketMessage.DELETE_PODUCT_PG, {
+        productId: id,
+      })
+      .toPromise();
+
     return data && data.affected > 0;
   }
 

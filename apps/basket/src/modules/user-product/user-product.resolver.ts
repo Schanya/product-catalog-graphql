@@ -2,7 +2,7 @@ import { JwtAuthGuard, JwtPayloadInput, UserParam } from '@libs/common';
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { BasketService } from '../basket/basket.service';
-import { Basket } from '../basket/entities';
+import { BasketEntity } from '../basket/entities';
 import { UsersProducts } from './entities';
 import { UsersProductsService } from './user-product.service';
 
@@ -14,9 +14,11 @@ export class UsersProductsResolver {
     private readonly userProductService: UsersProductsService,
   ) {}
 
-  @Query(() => Basket, { name: 'getBasket' })
+  @Query(() => BasketEntity, { name: 'getBasket' })
   async findOne(@UserParam() user: JwtPayloadInput) {
-    return await this.basketService.readByUserId(user.id);
+    const basket = await this.basketService.readBasketByUserId(user.id);
+
+    return basket;
   }
 
   @Mutation(() => Boolean, { name: 'deleteProductInBasket' })
@@ -24,6 +26,9 @@ export class UsersProductsResolver {
     @UserParam() user: JwtPayloadInput,
     @Args('productId', { type: () => [Int] }) productId: number[],
   ) {
-    return await this.userProductService.delete(user.id, productId);
+    return await this.userProductService.deleteProductsForUser(
+      user.id,
+      productId,
+    );
   }
 }

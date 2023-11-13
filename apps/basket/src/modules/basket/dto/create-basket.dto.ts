@@ -5,9 +5,6 @@ export class CreateBasketDto {
   @IsNumber()
   userId: number;
 
-  @IsNumber()
-  totalPrice: number;
-
   @IsOptional()
   product?: CreateProductDto[];
 }

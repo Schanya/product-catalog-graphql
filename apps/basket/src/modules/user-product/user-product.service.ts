@@ -23,6 +23,14 @@ export class UsersProductsService {
     private readonly userService: UserService,
   ) {}
 
+  async deleteProductIfDeletedInCatalog(productId: number): Promise<void> {
+    await this.usersProductsRepository.delete({ productId });
+
+    await this.basketClient
+      .emit(BasketMessage.DELETE_PODUCT_MONGO, { productId })
+      .toPromise();
+  }
+
   async updateProductsInBasket(product: Product): Promise<void> {
     await this.usersProductsRepository.update(
       { amount: MoreThan(product.quantity) },
@@ -31,22 +39,31 @@ export class UsersProductsService {
     await this.productService.update(product, product.id);
   }
 
+  async updateProductsAmountForEachUser(product: Product): Promise<void> {
+    await this.usersProductsRepository.update(
+      { productId: product.id, amount: MoreThan(product.quantity) },
+      { amount: product.quantity },
+    );
+  }
+
   async reduceAmountOfProducts(
     createPurchaseInput: CreatePurchaseInput,
     userId: number,
   ): Promise<{ commonInfo: Product; amount: number }[]> {
     const productIds = createPurchaseInput.productIds;
 
-    const paidProducts = await this.usersProductsRepository.find({
+    const existedProducts = await this.usersProductsRepository.find({
       where: { userId, productId: In(productIds) },
       relations: ['products'],
     });
 
-    if (paidProducts.length !== createPurchaseInput.productIds.length) {
-      throw new RpcException("The specified product is not in the user's cart");
+    if (existedProducts.length !== createPurchaseInput.productIds.length) {
+      throw new RpcException(
+        "The specified product is not in the user's basket",
+      );
     }
 
-    const isValidAmount = paidProducts.some(
+    const isValidAmount = existedProducts.some(
       (product) =>
         product.amount == 0 || product.products.quantity < product.amount,
     );
@@ -57,45 +74,21 @@ export class UsersProductsService {
       );
     }
 
-    await this.productService.updateProductsAmount(paidProducts);
-
-    const reducedProducts = await this.productService.readByIds(
-      createPurchaseInput.productIds,
-    );
-
-    await this.basketClient
-      .emit(BasketMessage.DELETE_MONGO, {
-        userId,
-        productIds,
-      })
-      .toPromise();
+    const updatedProducts =
+      await this.productService.updateProductsAmount(existedProducts);
 
     await this.basketClient
       .emit(BasketMessage.REDUCE_MONGO, {
-        products: reducedProducts,
+        products: updatedProducts,
       })
       .toPromise();
 
-    const products = paidProducts.map((el) => ({
+    const products = existedProducts.map((el) => ({
       commonInfo: el.products,
       amount: el.amount,
     }));
 
     return products;
-  }
-
-  async deleteAllPaidProducts(
-    createPurchaseInput: CreatePurchaseInput,
-    userId: number,
-  ): Promise<void> {
-    const productIds = createPurchaseInput.productIds;
-
-    const result = await this.usersProductsRepository.delete({
-      userId,
-      productId: In(productIds),
-    });
-
-    console.log(result);
   }
 
   async saveProductToBasket(
@@ -127,7 +120,10 @@ export class UsersProductsService {
       .toPromise();
   }
 
-  async delete(userId: number, productIds: number[]): Promise<boolean> {
+  async deleteProductsForUser(
+    userId: number,
+    productIds: number[],
+  ): Promise<boolean> {
     const existingUserProduct = await this.usersProductsRepository.findOne({
       where: { userId, productId: In(productIds) },
     });

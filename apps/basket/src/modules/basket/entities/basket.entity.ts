@@ -3,7 +3,7 @@ import { Product } from '../../product/entities';
 
 @ObjectType()
 @Directive('@key(fields: "_id")')
-export class Basket {
+export class BasketEntity {
   @Field()
   _id: string;
 

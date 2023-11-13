@@ -1,21 +1,39 @@
 import { Injectable } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateBasketDto, UpdateBasketDto } from './dto';
 import { Basket, Product } from './mongo-schemas';
+import { BasketEntity } from './entities';
 
 @Injectable()
 export class BasketService {
   constructor(@InjectModel('Basket') private basketRepository: Model<Basket>) {}
 
-  async readByUserId(userId: number): Promise<Basket> {
-    const basket = await this.basketRepository.findOne({ userId });
+  async readBasketByUserId(userId: number): Promise<any> {
+    const basket = await this.basketRepository.aggregate([
+      { $match: { userId } },
+      {
+        $unwind: '$products',
+      },
+      {
+        $group: {
+          _id: '$_id',
+          userId: { $first: '$userId' },
+          products: { $push: '$products' },
+          totalPrice: {
+            $sum: { $multiply: ['$products.price', '$products.quantity'] },
+          },
+        },
+      },
+    ]);
 
-    return basket;
+    return basket[0];
   }
 
-  async delete(userId: number, productIds: number[]): Promise<boolean> {
+  async deleteProductsFromBasket(
+    userId: number,
+    productIds: number[],
+  ): Promise<boolean> {
     const deleteResult = await this.basketRepository.updateOne(
       { userId },
       { $pull: { products: { id: { $in: productIds } } } },
@@ -24,10 +42,13 @@ export class BasketService {
     return deleteResult.acknowledged;
   }
 
-  async updateProductsInBasket(
-    product: Product,
-    users: [{ user_id: number; total_sum: number }],
-  ): Promise<void> {
+  async deleteProductIfDeletedInCatalog(productId: number): Promise<void> {
+    const deleteResult = await this.basketRepository.updateOne({
+      $pull: { products: { id: productId } },
+    });
+  }
+
+  async updateProductForEachUser(product: Product): Promise<void> {
     await this.basketRepository.updateMany(
       { 'products.id': product.id },
       {
@@ -49,45 +70,6 @@ export class BasketService {
         $set: { 'products.$.quantity': product.quantity },
       },
     );
-
-    const userIds = [];
-    const usersTotalSum = [];
-
-    users.forEach(
-      (user) => (
-        userIds.push(user.user_id), usersTotalSum.push(user.total_sum)
-      ),
-    );
-
-    await this.basketRepository.updateMany({ userId: { $in: userIds } }, [
-      {
-        $set: {
-          totalPrice: {
-            $arrayElemAt: [
-              usersTotalSum,
-              { $indexOfArray: [userIds, '$userId'] },
-            ],
-          },
-        },
-      },
-    ]);
-  }
-
-  async addProductToBasket(
-    product: Product,
-    userId: number,
-    amount: number,
-  ): Promise<void> {
-    const doesBasketExist = await this.basketRepository.findOne({ userId });
-    product.quantity = amount;
-
-    if (doesBasketExist) {
-      await this.update({ product: product }, userId);
-    } else {
-      const totalPrice = product.price * product.quantity;
-
-      await this.create({ product: [product], totalPrice, userId });
-    }
   }
 
   async reduceAmountOfPurchasedProduct(products: Product[]): Promise<void> {
@@ -104,64 +86,52 @@ export class BasketService {
     }
   }
 
-  private async create(createBasketDto: CreateBasketDto): Promise<Basket> {
+  async addProductToBasket(
+    product: Product,
+    userId: number,
+    amount: number,
+  ): Promise<void> {
+    const doesBasketExist = await this.basketRepository.findOne({ userId });
+    product.quantity = amount;
+
+    if (doesBasketExist) {
+      await this.updateBasket({ product: product }, userId);
+    } else {
+      await this.createBasket({ product: [product], userId });
+    }
+  }
+
+  private async createBasket(
+    createBasketDto: CreateBasketDto,
+  ): Promise<Basket> {
     const createdBasket = await this.basketRepository.create(createBasketDto);
 
     createdBasket.$set({ products: createBasketDto.product });
-
-    createdBasket.save();
+    await createdBasket.save();
 
     return createdBasket;
   }
 
-  private async update(
+  private async updateBasket(
     updateBasketDto: UpdateBasketDto,
     userId: number,
   ): Promise<Basket> {
-    const doesBasketExist = await this.basketRepository.findOne({ userId });
-
-    if (!doesBasketExist) {
-      throw new RpcException('The specified cart basket not exist');
-    }
-
     const haveBasketProduct = await this.basketRepository.findOne({
       userId,
       'products.id': updateBasketDto.product.id,
     });
 
-    if (haveBasketProduct) {
-      const existedProduct = Array.from(haveBasketProduct.products).find(
-        (product) => product.id == updateBasketDto.product.id,
-      );
-
-      const totalPrice =
-        haveBasketProduct.totalPrice -
-        existedProduct.price * existedProduct.quantity +
-        updateBasketDto.product.price * updateBasketDto.product.quantity;
-
-      const updatedBasket = await this.basketRepository.findOneAndUpdate(
-        { userId, 'products.id': updateBasketDto.product.id },
-        {
-          $set: {
-            'products.$': updateBasketDto.product,
-            totalPrice,
+    const updatedBasket = haveBasketProduct
+      ? await this.basketRepository.findOneAndUpdate(
+          { userId, 'products.id': updateBasketDto.product.id },
+          {
+            $set: { 'products.$': updateBasketDto.product },
           },
-        },
-      );
-
-      await updatedBasket.save();
-
-      return updatedBasket;
-    }
-
-    const totalPrice =
-      (doesBasketExist.totalPrice ?? 0) +
-      updateBasketDto.product.price * updateBasketDto.product.quantity;
-
-    const updatedBasket = await this.basketRepository.findOneAndUpdate(
-      { userId },
-      { $push: { products: updateBasketDto.product }, $set: { totalPrice } },
-    );
+        )
+      : await this.basketRepository.findOneAndUpdate(
+          { userId },
+          { $push: { products: updateBasketDto.product } },
+        );
 
     await updatedBasket.save();
 
