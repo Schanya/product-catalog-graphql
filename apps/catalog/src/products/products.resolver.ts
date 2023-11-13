@@ -1,7 +1,12 @@
 import { ParseIntPipe, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
-import { JwtAuthGuard, SessionGuard } from '@libs/common';
+import {
+  JwtAuthGuard,
+  JwtPayloadInput,
+  SessionGuard,
+  UserParam,
+} from '@libs/common';
 
 import { Product } from './entities';
 import { ProductsService } from './products.service';
@@ -9,6 +14,7 @@ import { ProductsService } from './products.service';
 import {
   CreateProductInput,
   FindProductInput,
+  SendProductToBasketInput,
   UpdateProductInput,
 } from './dto';
 
@@ -47,5 +53,17 @@ export class ProductsResolver {
   @Mutation(() => Boolean)
   async removeProduct(@Args('id', { type: () => Int }) id: number) {
     return await this.productsService.remove(id);
+  }
+
+  @Mutation(() => String)
+  async sendProductToBasket(
+    @Args('sendProductToBasketInput')
+    sendProductToBasketInput: SendProductToBasketInput,
+    @UserParam() payload: JwtPayloadInput,
+  ): Promise<string> {
+    return await this.productsService.sendProductToBasket(
+      sendProductToBasketInput,
+      payload,
+    );
   }
 }

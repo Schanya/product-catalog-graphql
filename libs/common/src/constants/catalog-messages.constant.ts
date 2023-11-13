@@ -1,0 +1,3 @@
+export enum CatalogMessage {
+  PURCHASED_PRODUCT = 'REDUCE_PRODUCT_AMOUNT_IN_CATALOG_PG',
+}

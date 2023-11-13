@@ -1,12 +1,7 @@
 import { Module } from '@nestjs/common';
-import { KafkaModule } from '@libs/common';
-
-const DefinitionKafkaModule = KafkaModule.register({
-  name: 'AUTH',
-});
 
 @Module({
-  imports: [DefinitionKafkaModule],
+  imports: [],
   controllers: [],
   providers: [],
 })

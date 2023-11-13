@@ -1,11 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class CatalogService {
-  constructor(@Inject('CATALOG') private readonly catalogClient: ClientKafka) {}
-
-  getHello(id: number): Promise<string> {
-    return this.catalogClient.send<string>('get-hello', { id }).toPromise();
-  }
-}
+export class CatalogService {}

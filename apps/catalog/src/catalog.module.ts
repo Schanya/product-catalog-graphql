@@ -52,5 +52,6 @@ const DefinitionConfigModule = ConfigModule.forRoot({
     CatalogService,
     JwtStrategy,
   ],
+  exports: [CatalogService],
 })
 export class CatalogModule {}
