@@ -3,6 +3,7 @@ import { BaseEntity, Column, Entity, ManyToMany, PrimaryColumn } from 'typeorm';
 import { User } from '../../user/entities';
 
 @ObjectType()
+@Directive('@shareable')
 @Directive('@key(fields: "id")')
 @Entity('products', { synchronize: true })
 export class Product extends BaseEntity {
@@ -26,6 +27,7 @@ export class Product extends BaseEntity {
   @Column({ type: 'integer' })
   quantity: number;
 
+  @Field(() => [User])
   @ManyToMany(() => User, (user) => user.products)
   users?: User[];
 }

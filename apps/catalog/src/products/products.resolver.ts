@@ -1,12 +1,7 @@
 import { ParseIntPipe, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
-import {
-  JwtAuthGuard,
-  JwtPayloadInput,
-  SessionGuard,
-  UserParam,
-} from '@libs/common';
+import { JwtAuthGuard, JwtPayloadInput, UserParam } from '@libs/common';
 
 import { Product } from './entities';
 import { ProductsService } from './products.service';

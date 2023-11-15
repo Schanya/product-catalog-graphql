@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateBasketDto, UpdateBasketDto } from './dto';
 import { Basket, Product } from './mongo-schemas';
-import { BasketEntity } from './entities';
 
 @Injectable()
 export class BasketService {

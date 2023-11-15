@@ -3,9 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { KafkaModule } from '@libs/common';
 
+import { BasketModule } from '../basket/basket.module';
 import { ProductModule } from '../product/product.module';
 import { UserModule } from '../user/user.module';
-import { BasketModule } from '../basket/basket.module';
 
 import { UsersProducts } from './entities';
 import { UsersProductsController } from './user-product.controller';

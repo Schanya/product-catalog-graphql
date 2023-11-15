@@ -1,10 +1,10 @@
 import { Directive, Field, Int, ObjectType } from '@nestjs/graphql';
-import { Product } from '../../product/entities';
+import { Product } from './product.entity';
 
 @ObjectType()
 @Directive('@shareable')
 @Directive('@key(fields: "_id")')
-export class BasketEntity {
+export class OrderEntity {
   @Field()
   _id: string;
 
