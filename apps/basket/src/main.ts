@@ -23,6 +23,11 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
+
   app.connectMicroservice(
     kafkaService.getOptions(configService.get<string>('KAFKA_NAME')),
   );

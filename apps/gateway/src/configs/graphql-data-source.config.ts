@@ -6,12 +6,12 @@ import {
 
 export class GraphQLDataSource extends RemoteGraphQLDataSource {
   didReceiveResponse({ response, context }): typeof response {
-    const cookies = response.http.headers?.raw()['auth-cookie'] as
+    const cookies = response.http.headers?.raw()['set-cookie'] as
       | string[]
       | null;
 
     if (cookies) {
-      context?.req.res.append('auth-cookie', cookies);
+      context?.req.res.append('set-cookie', cookies);
     }
 
     return response;

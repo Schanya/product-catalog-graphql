@@ -1,3 +1,6 @@
+import { config } from 'dotenv';
+config();
+
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -21,6 +24,11 @@ async function bootstrap() {
   );
 
   app.use(cookieParser());
+
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   app.use(
     session({

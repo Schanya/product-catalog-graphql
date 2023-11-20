@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 
-import { AllExceptionFilter } from '@libs/common';
+import { AllExceptionFilter, JwtStrategy } from '@libs/common';
 
 import { graphqlFederationOptions } from './configs';
 
@@ -31,6 +31,7 @@ const DefinitionConfigModule = ConfigModule.forRoot({
       provide: APP_FILTER,
       useClass: AllExceptionFilter,
     },
+    JwtStrategy,
   ],
 })
 export class GatewayModule {}
