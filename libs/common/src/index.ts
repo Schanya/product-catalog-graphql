@@ -13,6 +13,7 @@ export * from './constants/roles.constant';
 export * from './constants/basket-messages.constant';
 export * from './constants/catalog-messages.constant';
 export * from './constants/order-messages.constants';
+export * from './constants/currency.constant';
 
 export * from './guards/jwt.guard';
 export * from './guards/role.guard';
