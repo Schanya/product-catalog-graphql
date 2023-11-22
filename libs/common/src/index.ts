@@ -14,6 +14,7 @@ export * from './constants/basket-messages.constant';
 export * from './constants/catalog-messages.constant';
 export * from './constants/order-messages.constants';
 export * from './constants/currency.constant';
+export * from './constants/cache-keys.constant';
 
 export * from './guards/jwt.guard';
 export * from './guards/role.guard';
@@ -26,5 +27,8 @@ export * from './interceptors/transaction.interceptor';
 export * from './utils/get-repo-from-transaction.util';
 export * from './utils/session-serializer.util';
 export * from './utils/send-message.util';
+export * from './utils/get-cache-key.util';
 
 export * from './types/response-purchase-info.type';
+
+export * from './redis';

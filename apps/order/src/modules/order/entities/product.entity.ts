@@ -1,4 +1,16 @@
-import { Directive, Field, Float, Int, ObjectType } from '@nestjs/graphql';
+import { Currency } from '@libs/common';
+import {
+  Directive,
+  Field,
+  Float,
+  Int,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql';
+
+registerEnumType(Currency, {
+  name: 'Currency',
+});
 
 @ObjectType()
 @Directive('@shareable')
@@ -13,7 +25,7 @@ export class Product {
   @Field(() => Float)
   price: number;
 
-  @Field()
+  @Field(() => Currency)
   currency: string;
 
   @Field(() => Int)

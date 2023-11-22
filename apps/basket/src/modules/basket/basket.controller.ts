@@ -1,12 +1,16 @@
-import { BasketMessage } from '@libs/common';
+import { BasketMessage, RedisService } from '@libs/common';
 import { Controller, ParseIntPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { BasketService } from './basket.service';
 import { Product } from './mongo-schemas';
+import { getBasketCacheKey } from '../../common';
 
 @Controller()
 export class BasketController {
-  constructor(private readonly basketService: BasketService) {}
+  constructor(
+    private readonly basketService: BasketService,
+    private readonly cache: RedisService,
+  ) {}
 
   @MessagePattern(BasketMessage.SEND_MONGO)
   async saveProductToBasket(
@@ -14,6 +18,8 @@ export class BasketController {
     @Payload('product') product: Product,
     @Payload('amount') productAmount: number,
   ): Promise<void> {
+    await this.cache.del(getBasketCacheKey());
+
     await this.basketService.addProductToBasket(product, userId, productAmount);
   }
 
@@ -21,6 +27,8 @@ export class BasketController {
   async updateProductsInBasket(
     @Payload('product') product: Product,
   ): Promise<void> {
+    await this.cache.del(getBasketCacheKey());
+
     await this.basketService.updateProductForEachUser(product);
   }
 
@@ -29,6 +37,8 @@ export class BasketController {
     @Payload('productIds') productIds: number[],
     @Payload('userId') userId: number,
   ): Promise<void> {
+    await this.cache.del(getBasketCacheKey());
+
     await this.basketService.deleteProductsFromBasket(userId, productIds);
   }
 
@@ -36,6 +46,8 @@ export class BasketController {
   async reduceProductsInBasket(
     @Payload('products') products: Product[],
   ): Promise<void> {
+    await this.cache.del(getBasketCacheKey());
+
     await this.basketService.reduceAmountOfPurchasedProduct(products);
   }
 
@@ -43,6 +55,8 @@ export class BasketController {
   async deleteProductInUsersBasket(
     @Payload('productId') productId: number,
   ): Promise<void> {
+    await this.cache.del(getBasketCacheKey());
+
     await this.basketService.deleteProductIfDeletedInCatalog(productId);
   }
 }
