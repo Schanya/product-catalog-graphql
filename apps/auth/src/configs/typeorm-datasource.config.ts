@@ -1,6 +1,4 @@
 import { DataSourceOptions } from 'typeorm';
-import { Token } from '../modules/jwt/entities';
-import { User } from '../modules/users/entities';
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
@@ -9,8 +7,8 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.POSTGRES_DB_USERNAME,
   password: process.env.POSTGRES_DB_PASSWORD,
   database: process.env.POSTGRES_DB_NAME,
-  entities: [Token, User],
-  migrations: ['./apps/auth/migrations/*.ts'],
+  entities: ['./apps/auth/src/modules/**/entities/*.entity.ts'],
+  migrations: ['./apps/auth/src/migrations/*.ts'],
   migrationsRun: true,
   synchronize: false,
 };
