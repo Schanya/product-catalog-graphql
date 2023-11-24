@@ -24,7 +24,7 @@ const productsSeeds = [
   },
 ];
 
-export class Seeds1700511516310 implements MigrationInterface {
+export class Seeds1700804910749 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`INSERT INTO "products" ("id", "title", "price", "currency", "quantity")
     VALUES ${productsSeeds
@@ -35,5 +35,7 @@ export class Seeds1700511516310 implements MigrationInterface {
       .join(',')}`);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DELETE FROM "products"`);
+  }
 }

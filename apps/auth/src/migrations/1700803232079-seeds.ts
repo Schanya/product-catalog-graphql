@@ -19,7 +19,7 @@ const usersSeeds = [
   },
 ];
 
-export class Seeds1700509741683 implements MigrationInterface {
+export class Seeds1700803232079 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`INSERT INTO "users" ("login", "email", "password", "passwordSalt", "role")
       VALUES ${usersSeeds
@@ -30,5 +30,7 @@ export class Seeds1700509741683 implements MigrationInterface {
         .join(',')}`);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DELETE FROM "users"`);
+  }
 }

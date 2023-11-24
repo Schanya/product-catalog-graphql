@@ -1,5 +1,4 @@
 import { DataSourceOptions } from 'typeorm';
-import { Product } from '../products/entities';
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
@@ -8,8 +7,8 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.POSTGRES_DB_USERNAME,
   password: process.env.POSTGRES_DB_PASSWORD,
   database: process.env.POSTGRES_DB_NAME,
-  entities: [Product],
-  migrations: ['./apps/catalog/migrations/*.ts'],
+  entities: ['./apps/catalog/src/products/entities/*.entity.ts'],
+  migrations: ['./apps/catalog/src/migrations/*.ts'],
   migrationsRun: true,
   synchronize: false,
 };

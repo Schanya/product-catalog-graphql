@@ -1,4 +1,3 @@
-import { Currency } from '@libs/common';
 import {
   ObjectType,
   Field,
@@ -8,6 +7,11 @@ import {
   registerEnumType,
 } from '@nestjs/graphql';
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+export enum Currency {
+  USD = 'USD',
+  RUB = 'RUB',
+}
 
 registerEnumType(Currency, {
   name: 'Currency',

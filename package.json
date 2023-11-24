@@ -17,12 +17,15 @@
     "auth:migration:run": "dotenv -e ./apps/auth/.env -- npm run typeorm migration:run -- -d ./apps/auth/typeorm-migrations-datasource.ts",
     "auth:migration:generate": "dotenv -e ./apps/auth/.env -- npm run typeorm -- -d ./apps/auth/typeorm-migrations-datasource.ts migration:generate",
     "auth:migration:create": "npm run typeorm -- migration:create",
+    "auth:migration:revert": "dotenv -e ./apps/auth/.env -- npm run typeorm -- -d ./apps/auth/typeorm-migrations-datasource.ts migration:revert",
     "catalog:migration:run": "dotenv -e ./apps/catalog/.env -- npm run typeorm migration:run -- -d ./apps/catalog/typeorm-migrations-datasource.ts",
     "catalog:migration:generate": "dotenv -e ./apps/catalog/.env -- npm run typeorm -- -d ./apps/catalog/typeorm-migrations-datasource.ts migration:generate",
     "catalog:migration:create": "npm run typeorm -- migration:create",
+    "catalog:migration:revert": "dotenv -e ./apps/catalog/.env -- npm run typeorm -- -d ./apps/catalog/typeorm-migrations-datasource.ts migration:revert",
     "basket:migration:run": "dotenv -e ./apps/basket/.env -- npm run typeorm migration:run -- -d ./apps/basket/typeorm-migrations-datasource.ts",
     "basket:migration:generate": "dotenv -e ./apps/basket/.env -- npm run typeorm -- -d ./apps/basket/typeorm-migrations-datasource.ts migration:generate",
-    "basket:migration:create": "npm run typeorm -- migration:create"
+    "basket:migration:create": "npm run typeorm -- migration:create",
+    "basket:migration:revert": "dotenv -e ./apps/basket/.env -- npm run typeorm -- -d ./apps/basket/typeorm-migrations-datasource.ts migration:revert"
   },
   "dependencies": {
     "@apollo/federation": "^0.38.1",

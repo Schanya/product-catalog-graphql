@@ -24,16 +24,18 @@ const productsSeeds = [
   },
 ];
 
-export class Seeds1700510291696 implements MigrationInterface {
+export class Seeds1700806927658 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`INSERT INTO "products" ("title", "price", "currency", "quantity")
+    await queryRunner.query(`INSERT INTO "products" ("id", "title", "price", "currency", "quantity")
     VALUES ${productsSeeds
       .map(
         (product) =>
-          `('${product.title}', ${product.price}, '${product.currency}', '${product.quantity}')`,
+          `('${product.id}', '${product.title}', ${product.price}, '${product.currency}', '${product.quantity}')`,
       )
       .join(',')}`);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DELETE FROM "products"`);
+  }
 }
