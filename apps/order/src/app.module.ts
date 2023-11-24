@@ -29,10 +29,7 @@ const DefinitionMongoModule = MongooseModule.forRootAsync({
 const DefinitionGraphQLModule =
   GraphQLModule.forRoot<ApolloFederationDriverConfig>({
     driver: ApolloFederationDriver,
-    context: ({ req, res }) => ({ req, res }),
-    autoSchemaFile: {
-      federation: 2,
-    },
+    typePaths: ['**/*.graphql'],
   });
 
 @Module({
