@@ -35,7 +35,7 @@ export class AuthService {
 
   async signUp(
     signUpInput: SignUpInput,
-    transaction: EntityManager,
+    transaction?: EntityManager,
   ): Promise<JwtResponse> {
     const user = await this.createLocalUser(signUpInput, transaction);
 
@@ -44,7 +44,7 @@ export class AuthService {
     return tokens;
   }
 
-  async signIn(user: User, transaction: EntityManager): Promise<JwtResponse> {
+  async signIn(user: User, transaction?: EntityManager): Promise<JwtResponse> {
     const jwts = await this.generateJwts(user.id, user.role);
 
     await this.jwtService.saveJwt(user, jwts.refreshToken, transaction);
@@ -93,9 +93,9 @@ export class AuthService {
     await this.jwtService.deleteJwt(user.id, refreshToken, transaction);
   }
 
-  private async createLocalUser(
+  async createLocalUser(
     signUpInput: SignUpInput,
-    transaction: EntityManager,
+    transaction?: EntityManager,
   ): Promise<User> {
     const existiongUser = await this.userSerivce.readByEmail(signUpInput.email);
 
