@@ -2,14 +2,20 @@ import {
   ApolloFederationDriver,
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { typeOrmOptions } from './configs';
 
-import { AllExceptionFilter, JwtStrategy, KafkaModule } from '@libs/common';
+import {
+  AllExceptionFilter,
+  JwtStrategy,
+  KafkaModule,
+  LoggerMiddleware,
+  WinstonLoggerModule,
+} from '@libs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CoreModule } from './modules/core.module';
@@ -49,6 +55,7 @@ const DefinitionMongoModule = MongooseModule.forRootAsync({
     DefinitionConfigModule,
     DefinitionGraphQLModule,
     DefinitionMongoModule,
+    WinstonLoggerModule,
     CoreModule,
     KafkaModule,
   ],
@@ -61,4 +68,8 @@ const DefinitionMongoModule = MongooseModule.forRootAsync({
     JwtStrategy,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}
