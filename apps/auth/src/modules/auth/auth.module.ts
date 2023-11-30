@@ -14,11 +14,11 @@ import { LocalStrategy, RefreshStrategy } from './strategies';
 @Module({
   imports: [PassportModule.register({ session: true }), UsersModule, JwtModule],
   providers: [
-    AuthResolver,
     AuthService,
     LocalStrategy,
     RefreshStrategy,
     SessionSerializer,
+    AuthResolver,
   ],
   exports: [PassportModule],
 })

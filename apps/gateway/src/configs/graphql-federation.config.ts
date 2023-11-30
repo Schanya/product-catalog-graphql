@@ -1,12 +1,13 @@
 import { IntrospectAndCompose } from '@apollo/gateway';
-import { ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { ConfigService } from '@nestjs/config';
 import { GraphQLDataSource } from './graphql-data-source.config';
 
-export const graphqlFederationOptions = (
-  config: ConfigService,
-): Omit<ApolloGatewayDriverConfig<any>, 'driver'> => ({
+export const graphqlFederationOptions = (config: ConfigService) => ({
   server: {},
+  cors: {
+    origin: true,
+    credentials: true,
+  },
   gateway: {
     supergraphSdl: new IntrospectAndCompose({
       subgraphHealthCheck: true,
@@ -18,6 +19,14 @@ export const graphqlFederationOptions = (
         {
           name: config.get<string>('AUTH_NAME'),
           url: config.get<string>('AUTH_URL'),
+        },
+        {
+          name: config.get<string>('BASKET_NAME'),
+          url: config.get<string>('BASKET_URL'),
+        },
+        {
+          name: config.get<string>('ORDER_NAME'),
+          url: config.get<string>('ORDER_URL'),
         },
       ],
     }),

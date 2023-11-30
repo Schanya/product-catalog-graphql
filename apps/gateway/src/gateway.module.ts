@@ -1,10 +1,15 @@
 import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 
-import { AllExceptionFilter } from '@libs/common';
+import {
+  AllExceptionFilter,
+  JwtStrategy,
+  LoggerMiddleware,
+  WinstonLoggerModule,
+} from '@libs/common';
 
 import { graphqlFederationOptions } from './configs';
 
@@ -24,13 +29,23 @@ const DefinitionConfigModule = ConfigModule.forRoot({
 });
 
 @Module({
-  imports: [DefinitionConfigModule, DefinitionGraphQLModule, CoreModule],
+  imports: [
+    DefinitionConfigModule,
+    DefinitionGraphQLModule,
+    WinstonLoggerModule,
+    CoreModule,
+  ],
   controllers: [],
   providers: [
     {
       provide: APP_FILTER,
       useClass: AllExceptionFilter,
     },
+    JwtStrategy,
   ],
 })
-export class GatewayModule {}
+export class GatewayModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}
