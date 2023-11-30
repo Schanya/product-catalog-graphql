@@ -5,6 +5,9 @@ import {
   JwtAuthGuard,
   JwtPayloadInput,
   RedisService,
+  Role,
+  Roles,
+  RolesGuard,
   UserParam,
 } from '@libs/common';
 
@@ -19,6 +22,8 @@ import {
 } from './dto';
 import { getProductCacheKey } from '../common';
 
+@Roles(Role.ADMIN, Role.USER)
+@UseGuards(RolesGuard)
 @UseGuards(JwtAuthGuard)
 @Resolver(() => Product)
 export class ProductsResolver {
@@ -27,6 +32,7 @@ export class ProductsResolver {
     private readonly cache: RedisService,
   ) {}
 
+  @Roles(Role.ADMIN)
   @Mutation(() => Product)
   async createProduct(
     @Args('createProductInput') createProductInput: CreateProductInput,
@@ -68,6 +74,7 @@ export class ProductsResolver {
     return product;
   }
 
+  @Roles(Role.ADMIN)
   @Mutation(() => Product)
   async updateProduct(
     @Args('id', ParseIntPipe) id: number,
@@ -79,6 +86,7 @@ export class ProductsResolver {
     return await this.productsService.update(id, updateProductInput);
   }
 
+  @Roles(Role.ADMIN)
   @Mutation(() => Boolean)
   async removeProduct(@Args('id', { type: () => Int }) id: number) {
     await this.cache.del(getProductCacheKey());

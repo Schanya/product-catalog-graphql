@@ -2,6 +2,9 @@ import {
   JwtAuthGuard,
   JwtPayloadInput,
   RedisService,
+  Role,
+  Roles,
+  RolesGuard,
   UserParam,
 } from '@libs/common';
 import { UseGuards } from '@nestjs/common';
@@ -10,6 +13,8 @@ import { OrderEntity } from './entities';
 import { OrderService } from './order.service';
 import { getOrderCacheKey } from '../../common';
 
+@Roles(Role.ADMIN, Role.USER)
+@UseGuards(RolesGuard)
 @UseGuards(JwtAuthGuard)
 @Resolver(() => OrderEntity)
 export class OrderResolver {
@@ -33,6 +38,7 @@ export class OrderResolver {
     return orders;
   }
 
+  @Roles(Role.ADMIN)
   @Query(() => [OrderEntity], { name: 'getAllOrders', nullable: true })
   async findAll() {
     const key = getOrderCacheKey();

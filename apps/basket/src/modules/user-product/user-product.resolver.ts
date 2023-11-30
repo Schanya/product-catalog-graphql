@@ -2,6 +2,9 @@ import {
   JwtAuthGuard,
   JwtPayloadInput,
   RedisService,
+  Role,
+  Roles,
+  RolesGuard,
   UserParam,
 } from '@libs/common';
 import { UseGuards } from '@nestjs/common';
@@ -12,6 +15,8 @@ import { UsersProducts } from './entities';
 import { UsersProductsService } from './user-product.service';
 import { getBasketCacheKey } from '../../common';
 
+@Roles(Role.ADMIN, Role.USER)
+@UseGuards(RolesGuard)
 @UseGuards(JwtAuthGuard)
 @Resolver(() => UsersProducts)
 export class UsersProductsResolver {
