@@ -4,7 +4,7 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import {
   JwtAuthGuard,
   JwtPayloadInput,
-  SessionGuard,
+  RedisService,
   UserParam,
 } from '@libs/common';
 
@@ -17,16 +17,22 @@ import {
   SendProductToBasketInput,
   UpdateProductInput,
 } from './dto';
+import { getProductCacheKey } from '../common';
 
 @UseGuards(JwtAuthGuard)
 @Resolver(() => Product)
 export class ProductsResolver {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly cache: RedisService,
+  ) {}
 
   @Mutation(() => Product)
   async createProduct(
     @Args('createProductInput') createProductInput: CreateProductInput,
   ) {
+    await this.cache.del(getProductCacheKey());
+
     return await this.productsService.create(createProductInput);
   }
 
@@ -34,12 +40,32 @@ export class ProductsResolver {
   async findAll(
     @Args('input', { nullable: true }) findProductInput: FindProductInput,
   ) {
-    return await this.productsService.findAll(findProductInput);
+    const key = getProductCacheKey();
+
+    const fromCache = await this.cache.get(key);
+    if (fromCache) {
+      return fromCache;
+    }
+
+    const products = await this.productsService.findAll(findProductInput);
+    await this.cache.set(key, products);
+
+    return products;
   }
 
   @Query(() => Product, { name: 'product' })
   async findOne(@Args('id', { type: () => Int }) id: number) {
-    return await this.productsService.readById(id);
+    const key = getProductCacheKey(id);
+
+    const fromCache = await this.cache.get(getProductCacheKey(id));
+    if (fromCache) {
+      return fromCache;
+    }
+
+    const product = await this.productsService.readById(id);
+    await this.cache.set(key, product);
+
+    return product;
   }
 
   @Mutation(() => Product)
@@ -47,11 +73,17 @@ export class ProductsResolver {
     @Args('id', ParseIntPipe) id: number,
     @Args('updateProductInput') updateProductInput: UpdateProductInput,
   ) {
+    await this.cache.del(getProductCacheKey());
+    await this.cache.del(getProductCacheKey(id));
+
     return await this.productsService.update(id, updateProductInput);
   }
 
   @Mutation(() => Boolean)
   async removeProduct(@Args('id', { type: () => Int }) id: number) {
+    await this.cache.del(getProductCacheKey());
+    await this.cache.del(getProductCacheKey(id));
+
     return await this.productsService.remove(id);
   }
 

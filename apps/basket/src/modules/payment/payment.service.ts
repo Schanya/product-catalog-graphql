@@ -5,13 +5,14 @@ import { ClientKafka } from '@nestjs/microservices';
 import { StripeService } from '../stripe-payment/stripe.service';
 import { CreatePurchaseInput } from './dto';
 import { UsersProductsService } from '../user-product/user-product.service';
-import { CatalogMessage } from '@libs/common';
+import { CatalogMessage, OrderMessage } from '@libs/common';
 import { ProductsService } from '../product/product.service';
 
 @Injectable()
 export class PaymentService {
   constructor(
     @Inject('CATALOG') private readonly catalogClient: ClientKafka,
+    @Inject('ORDER') private readonly orderClient: ClientKafka,
     private readonly stripeService: StripeService,
     private readonly userProductService: UsersProductsService,
     private readonly productService: ProductsService,
@@ -32,7 +33,12 @@ export class PaymentService {
     });
 
     if (url) {
-      const products = await this.productService.readByIds(
+      let products = await this.productService.readByIds(
+        createPurchaseInput.productIds,
+      );
+
+      const order = await this.userProductService.readByUserIdAndProductIds(
+        userId,
         createPurchaseInput.productIds,
       );
 
@@ -50,6 +56,19 @@ export class PaymentService {
       );
 
       await Promise.all(promises);
+
+      products = products.map(
+        (product) => (
+          (product.quantity = order.find(
+            (userProduct) => userProduct.productId == product.id,
+          ).amount),
+          product
+        ),
+      );
+
+      await this.orderClient
+        .emit(OrderMessage.ADD_ORDER, { products, userId })
+        .toPromise();
     }
 
     return url;

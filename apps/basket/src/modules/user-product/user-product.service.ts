@@ -1,4 +1,5 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, MoreThan, Repository } from 'typeorm';
 
@@ -7,11 +8,11 @@ import { ProductsService } from '../product/product.service';
 
 import { UserService } from '../user/user.service';
 
-import { ClientKafka, RpcException } from '@nestjs/microservices';
+import { BasketMessage } from '@libs/common';
+
+import { CreatePurchaseInput } from '../payment/dto';
 import { CreateUserProductInput, UpdateUserProductInput } from './dto';
 import { UsersProducts } from './entities';
-import { CreatePurchaseInput } from '../payment/dto';
-import { BasketMessage } from '@libs/common';
 
 @Injectable()
 export class UsersProductsService {
@@ -29,6 +30,20 @@ export class UsersProductsService {
     await this.basketClient
       .emit(BasketMessage.DELETE_PODUCT_MONGO, { productId })
       .toPromise();
+  }
+
+  async readByUserIdAndProductIds(
+    userId: number,
+    productIds: number[],
+  ): Promise<UsersProducts[]> {
+    const userProduct = await this.usersProductsRepository
+      .createQueryBuilder('users_products')
+      .innerJoin('users_products.products', 'products')
+      .where(`users_products.user_id = :userId`, { userId })
+      .andWhere('users_products.product_id IN (:...productIds)', { productIds })
+      .getMany();
+
+    return userProduct;
   }
 
   async updateProductsInBasket(product: Product): Promise<void> {

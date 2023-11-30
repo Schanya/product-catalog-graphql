@@ -10,8 +10,6 @@ export const typeOrmOptions = (
   username: config.get('POSTGRES_DB_USERNAME'),
   password: config.get('POSTGRES_DB_PASSWORD'),
   database: config.get('POSTGRES_DB_NAME'),
-  entities: ['dist/**/*{.entity.js, .entity.ts}'],
-  migrations: ['dist/data/migrations/*.js'],
   synchronize: true,
   autoLoadEntities: true,
   logging: true,
