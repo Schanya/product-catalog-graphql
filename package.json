@@ -13,6 +13,8 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/gateway/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
     "typeorm": "ts-node ./node_modules/typeorm/cli",
     "auth:migration:run": "dotenv -e ./apps/auth/.env -- npm run typeorm migration:run -- -d ./apps/auth/typeorm-migrations-datasource.ts",
     "auth:migration:generate": "dotenv -e ./apps/auth/.env -- npm run typeorm -- -d ./apps/auth/typeorm-migrations-datasource.ts migration:generate",
@@ -56,13 +58,16 @@
     "graphql": "^16.8.1",
     "kafkajs": "^2.2.4",
     "mongoose": "^7.6.4",
+    "nest-winston": "^1.9.4",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "stripe": "^14.3.0",
-    "typeorm": "^0.3.17"
+    "typeorm": "^0.3.17",
+    "winston": "^3.11.0",
+    "winston-mongodb": "^5.1.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

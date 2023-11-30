@@ -1,9 +1,12 @@
 import { config } from 'dotenv';
 config();
 
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { WinstonModule } from 'nest-winston';
+
+import { logger } from '@libs/common';
 
 import { AppModule } from './app.module';
 
@@ -12,7 +15,14 @@ import * as session from 'express-session';
 import * as passport from 'passport';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger({
+      instance: logger,
+    }),
+  });
+
+  const loggerNest = new Logger();
+  app.useLogger(loggerNest);
 
   const configService = app.get<ConfigService>(ConfigService);
 
