@@ -5,7 +5,7 @@ import { ClientKafka } from '@nestjs/microservices';
 import { StripeService } from '../stripe-payment/stripe.service';
 import { CreatePurchaseInput } from './dto';
 import { UsersProductsService } from '../user-product/user-product.service';
-import { CatalogMessage, OrderMessage } from '@libs/common';
+import { CatalogMessage, EmitEvent, OrderMessage } from '@libs/common';
 import { ProductsService } from '../product/product.service';
 
 @Injectable()
@@ -47,9 +47,9 @@ export class PaymentService {
         createPurchaseInput.productIds,
       );
 
-      await this.catalogClient
-        .emit(CatalogMessage.PURCHASED_PRODUCT, { products })
-        .toPromise();
+      await this._emitCatalogEvent(CatalogMessage.PURCHASED_PRODUCT, {
+        products,
+      });
 
       const promises = products.map((product) =>
         this.userProductService.updateProductsAmountForEachUser(product),
@@ -66,11 +66,29 @@ export class PaymentService {
         ),
       );
 
-      await this.orderClient
-        .emit(OrderMessage.ADD_ORDER, { products, userId })
-        .toPromise();
+      await this._emitOrderEvent(OrderMessage.ADD_ORDER, { products, userId });
     }
 
     return url;
+  }
+
+  private async _emitCatalogEvent<T>(pattern: string, data: any): Promise<T> {
+    const res = await EmitEvent<T>({
+      client: this.catalogClient,
+      pattern,
+      data,
+    });
+
+    return res;
+  }
+
+  private async _emitOrderEvent<T>(pattern: string, data: any): Promise<T> {
+    const res = await EmitEvent<T>({
+      client: this.orderClient,
+      pattern,
+      data,
+    });
+
+    return res;
   }
 }

@@ -8,7 +8,7 @@ import { ProductsService } from '../product/product.service';
 
 import { UserService } from '../user/user.service';
 
-import { BasketMessage } from '@libs/common';
+import { BasketMessage, EmitEvent } from '@libs/common';
 
 import { CreatePurchaseInput } from '../payment/dto';
 import { CreateUserProductInput, UpdateUserProductInput } from './dto';
@@ -27,9 +27,9 @@ export class UsersProductsService {
   async deleteProductIfDeletedInCatalog(productId: number): Promise<void> {
     await this.usersProductsRepository.delete({ productId });
 
-    await this.basketClient
-      .emit(BasketMessage.DELETE_PODUCT_MONGO, { productId })
-      .toPromise();
+    await this._emitBasketEvent(BasketMessage.DELETE_PODUCT_MONGO, {
+      productId,
+    });
   }
 
   async readByUserIdAndProductIds(
@@ -92,11 +92,9 @@ export class UsersProductsService {
     const updatedProducts =
       await this.productService.updateProductsAmount(existedProducts);
 
-    await this.basketClient
-      .emit(BasketMessage.REDUCE_MONGO, {
-        products: updatedProducts,
-      })
-      .toPromise();
+    await this._emitBasketEvent(BasketMessage.REDUCE_MONGO, {
+      products: updatedProducts,
+    });
 
     const products = existedProducts.map((el) => ({
       commonInfo: el.products,
@@ -126,13 +124,11 @@ export class UsersProductsService {
           amount,
         });
 
-    await this.basketClient
-      .emit(BasketMessage.SEND_MONGO, {
-        product,
-        userId,
-        amount,
-      })
-      .toPromise();
+    await this._emitBasketEvent(BasketMessage.SEND_MONGO, {
+      product,
+      userId,
+      amount,
+    });
   }
 
   async deleteProductsForUser(
@@ -152,12 +148,10 @@ export class UsersProductsService {
       productId: In(productIds),
     });
 
-    await this.basketClient
-      .emit(BasketMessage.DELETE_MONGO, {
-        userId,
-        productIds,
-      })
-      .toPromise();
+    await this._emitBasketEvent(BasketMessage.DELETE_MONGO, {
+      userId,
+      productIds,
+    });
 
     return data.affected > 0;
   }
@@ -184,5 +178,15 @@ export class UsersProductsService {
     await updatedUserProduct.save();
 
     return updatedUserProduct;
+  }
+
+  private async _emitBasketEvent<T>(pattern: string, data: any): Promise<T> {
+    const res = await EmitEvent<T>({
+      client: this.basketClient,
+      pattern,
+      data,
+    });
+
+    return res;
   }
 }
