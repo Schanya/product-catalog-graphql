@@ -18,7 +18,7 @@ export class UsersProductsController {
     @Payload('product') product: Product,
     @Payload('amount') productAmount: number,
   ): Promise<void> {
-    await this.cache.del(getBasketCacheKey());
+    await this.cache.del(getBasketCacheKey(userId));
 
     await this.userProductService.saveProductToBasket(
       product,

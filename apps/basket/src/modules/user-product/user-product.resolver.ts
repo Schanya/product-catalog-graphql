@@ -26,17 +26,9 @@ export class UsersProductsResolver {
     private readonly cache: RedisService,
   ) {}
 
-  @Query(() => BasketEntity, { name: 'getBasket' })
+  @Query(() => BasketEntity, { name: 'getBasket', nullable: true })
   async findOne(@UserParam() user: JwtPayloadInput) {
-    const key = getBasketCacheKey();
-
-    const fromCache = await this.cache.get(key);
-    if (fromCache) {
-      return fromCache;
-    }
-
     const basket = await this.basketService.readBasketByUserId(user.id);
-    await this.cache.set(key, basket);
 
     return basket;
   }
@@ -46,7 +38,7 @@ export class UsersProductsResolver {
     @UserParam() user: JwtPayloadInput,
     @Args('productId', { type: () => [Int] }) productId: number[],
   ) {
-    await this.cache.del(getBasketCacheKey());
+    await this.cache.del(getBasketCacheKey(user.id));
 
     return await this.userProductService.deleteProductsForUser(
       user.id,

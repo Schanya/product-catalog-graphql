@@ -25,15 +25,7 @@ export class OrderResolver {
 
   @Query(() => [OrderEntity], { name: 'getOrder', nullable: true })
   async findOne(@UserParam() user: JwtPayloadInput) {
-    const key = getOrderCacheKey();
-
-    const fromCache = await this.cache.get(key);
-    if (fromCache) {
-      return fromCache;
-    }
-
     const orders = await this.orderService.readByUserId(user.id);
-    await this.cache.set(key, orders);
 
     return orders;
   }
