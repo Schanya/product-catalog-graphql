@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -9,7 +9,13 @@ import {
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
 
-import { AllExceptionFilter, JwtStrategy, KafkaModule } from '@libs/common';
+import {
+  AllExceptionFilter,
+  JwtStrategy,
+  KafkaModule,
+  LoggerMiddleware,
+  WinstonLoggerModule,
+} from '@libs/common';
 import { CoreModule } from './modules/core.module';
 
 const DefinitionConfigModule = ConfigModule.forRoot({
@@ -29,10 +35,7 @@ const DefinitionMongoModule = MongooseModule.forRootAsync({
 const DefinitionGraphQLModule =
   GraphQLModule.forRoot<ApolloFederationDriverConfig>({
     driver: ApolloFederationDriver,
-    context: ({ req, res }) => ({ req, res }),
-    autoSchemaFile: {
-      federation: 2,
-    },
+    typePaths: ['**/*.graphql'],
   });
 
 @Module({
@@ -42,6 +45,7 @@ const DefinitionGraphQLModule =
     DefinitionMongoModule,
     CoreModule,
     KafkaModule,
+    WinstonLoggerModule,
   ],
   controllers: [],
   providers: [
@@ -52,4 +56,8 @@ const DefinitionGraphQLModule =
     JwtStrategy,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

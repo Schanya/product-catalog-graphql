@@ -1,6 +1,22 @@
-import { Directive, Field, Float, Int, ObjectType } from '@nestjs/graphql';
+import {
+  Directive,
+  Field,
+  Float,
+  Int,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql';
 import { BaseEntity, Column, Entity, ManyToMany, PrimaryColumn } from 'typeorm';
 import { User } from '../../user/entities';
+
+export enum Currency {
+  USD = 'USD',
+  RUB = 'RUB',
+}
+
+registerEnumType(Currency, {
+  name: 'Currency',
+});
 
 @ObjectType()
 @Directive('@shareable')
@@ -19,8 +35,12 @@ export class Product extends BaseEntity {
   @Column({ type: 'real' })
   price: number;
 
-  @Field()
-  @Column({ type: 'text' })
+  @Field(() => Currency)
+  @Column({
+    type: 'enum',
+    enum: Currency,
+    default: Currency.USD,
+  })
   currency: string;
 
   @Field(() => Int)

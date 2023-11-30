@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { KafkaModule } from '@libs/common';
+import { KafkaModule, RedisModule } from '@libs/common';
 
 import { BasketModule } from '../basket/basket.module';
 import { ProductModule } from '../product/product.module';
@@ -22,6 +22,7 @@ const DefinitionBasketKafkaModule = KafkaModule.register({
     ProductModule,
     UserModule,
     BasketModule,
+    RedisModule,
     DefinitionBasketKafkaModule,
   ],
   controllers: [UsersProductsController],

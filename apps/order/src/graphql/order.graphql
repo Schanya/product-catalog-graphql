@@ -1,0 +1,29 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@shareable"]
+  )
+
+enum Currency {
+  USD
+}
+
+type Product @key(fields: "id") @shareable {
+  id: Int!
+  title: String!
+  price: Float!
+  currency: Currency!
+  quantity: Int!
+}
+
+type OrderEntity @key(fields: "_id") @shareable {
+  _id: String!
+  userId: Int!
+  totalPrice: Int!
+  products: [Product!]!
+}
+
+type Query {
+  getOrder: [OrderEntity]
+  getAllOrders: [OrderEntity]
+}

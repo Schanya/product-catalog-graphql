@@ -2,11 +2,15 @@ import { Controller, ParseIntPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { Product } from '../product/entities';
 import { UsersProductsService } from './user-product.service';
-import { BasketMessage } from '@libs/common';
+import { BasketMessage, RedisService } from '@libs/common';
+import { getBasketCacheKey } from '../../common';
 
 @Controller()
 export class UsersProductsController {
-  constructor(private readonly userProductService: UsersProductsService) {}
+  constructor(
+    private readonly userProductService: UsersProductsService,
+    private readonly cache: RedisService,
+  ) {}
 
   @MessagePattern(BasketMessage.SEND_PG)
   async saveProductToBasket(
@@ -14,6 +18,8 @@ export class UsersProductsController {
     @Payload('product') product: Product,
     @Payload('amount') productAmount: number,
   ): Promise<void> {
+    await this.cache.del(getBasketCacheKey());
+
     await this.userProductService.saveProductToBasket(
       product,
       userId,
@@ -25,6 +31,8 @@ export class UsersProductsController {
   async updateProductsInBasket(
     @Payload('product') product: Product,
   ): Promise<void> {
+    await this.cache.del(getBasketCacheKey());
+
     await this.userProductService.updateProductsInBasket(product);
   }
 
@@ -32,6 +40,8 @@ export class UsersProductsController {
   async deleteProductInUsersBasket(
     @Payload('productId') productId: number,
   ): Promise<void> {
+    await this.cache.del(getBasketCacheKey());
+
     await this.userProductService.deleteProductIfDeletedInCatalog(productId);
   }
 }

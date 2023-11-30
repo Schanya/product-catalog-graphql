@@ -1,15 +1,23 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { WinstonModule } from 'nest-winston';
 
 import * as cookieParser from 'cookie-parser';
 
-import { KafkaService } from '@libs/common';
+import { KafkaService, logger } from '@libs/common';
 
 import { CatalogModule } from './catalog.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(CatalogModule);
+  const app = await NestFactory.create(CatalogModule, {
+    logger: WinstonModule.createLogger({
+      instance: logger,
+    }),
+  });
+
+  const loggerNest = new Logger();
+  app.useLogger(loggerNest);
 
   const kafkaService = app.get<KafkaService>(KafkaService);
   const configService = app.get<ConfigService>(ConfigService);
