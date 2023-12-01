@@ -11,3 +11,4 @@ RUN npm i dotenv-cli -g
 RUN npm run build auth
 
 CMD ["npm", "run", "docker:run"]
+

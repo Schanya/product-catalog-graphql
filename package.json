@@ -31,6 +31,7 @@
     "basket:migration:revert": "dotenv -e ./apps/basket/.env -- npm run typeorm -- -d ./apps/basket/typeorm-migrations-datasource.ts migration:revert",
     "docker:auth:migration:run": "dotenv -e ./apps/auth/.docker.env -- npm run typeorm migration:run -- -d ./apps/auth/typeorm-migrations-datasource.ts",
     "docker:catalog:migration:run": "dotenv -e ./apps/catalog/.docker.env -- npm run typeorm migration:run -- -d ./apps/catalog/typeorm-migrations-datasource.ts",
+    "docker:catalog:migration:generate": "dotenv -e ./apps/catalog/.docker.env -- npm run typeorm -- -d ./apps/catalog/typeorm-migrations-datasource.ts migration:generate",
     "docker:basket:migration:run": "dotenv -e ./apps/basket/.docker.env -- npm run typeorm migration:run -- -d ./apps/basket/typeorm-migrations-datasource.ts",
     "docker:auth": "npm run docker:auth:migration:run; npm run docker:start auth",
     "docker:basket": "npm run docker:basket:migration:run; npm run docker:start basket",

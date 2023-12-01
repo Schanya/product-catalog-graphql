@@ -61,6 +61,8 @@ services:
       - kafka
     env_file:
       - ./apps/gateway/.envDocker
+    environment:
+    - NODE_ENV=docker
     ports:
       - 3000:3000
     networks:
@@ -76,6 +78,8 @@ services:
       - kafka
     env_file:
       - ./apps/auth/.envDocker
+    environment:
+    - NODE_ENV=docker
     ports:
       - 3002:3002
     networks:
@@ -94,6 +98,8 @@ services:
       - redis
     env_file:
       - ./apps/basket/.envDocker
+    environment:
+    - NODE_ENV=docker
     ports:
       - 3003:3003
     networks:
@@ -114,6 +120,8 @@ services:
       - redis
     env_file:
       - ./apps/catalog/.envDocker
+    environment:
+    - NODE_ENV=docker
     ports:
       - 3001:3001
     networks:
@@ -133,6 +141,8 @@ services:
       - redis
     env_file:
       - ./apps/order/.envDocker
+    environment:
+    - NODE_ENV=docker
     ports:
       - 3004:3004
     networks:
