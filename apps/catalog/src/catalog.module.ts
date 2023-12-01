@@ -15,6 +15,7 @@ import {
   LoggerMiddleware,
   RedisModule,
   WinstonLoggerModule,
+  getEnvironmentFile,
 } from '@libs/common';
 
 import { CatalogController } from './catalog.controller';
@@ -37,9 +38,12 @@ const DefinitionTypeOrmModule = TypeOrmModule.forRootAsync({
   inject: [ConfigService],
 });
 
+const envFilePath = `./apps/catalog/${getEnvironmentFile(
+  process.env.NODE_ENV,
+)}`;
 const DefinitionConfigModule = ConfigModule.forRoot({
   isGlobal: true,
-  envFilePath: './apps/catalog/.env',
+  envFilePath: envFilePath,
 });
 
 @Module({

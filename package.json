@@ -8,8 +8,9 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start": "set NODE_ENV=development && nest start",
+    "docker:start": "set NODE_ENV=docker && nest start --watch",
+    "start:dev": "set NODE_ENV=development && nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/gateway/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -27,7 +28,13 @@
     "basket:migration:run": "dotenv -e ./apps/basket/.env -- npm run typeorm migration:run -- -d ./apps/basket/typeorm-migrations-datasource.ts",
     "basket:migration:generate": "dotenv -e ./apps/basket/.env -- npm run typeorm -- -d ./apps/basket/typeorm-migrations-datasource.ts migration:generate",
     "basket:migration:create": "npm run typeorm -- migration:create",
-    "basket:migration:revert": "dotenv -e ./apps/basket/.env -- npm run typeorm -- -d ./apps/basket/typeorm-migrations-datasource.ts migration:revert"
+    "basket:migration:revert": "dotenv -e ./apps/basket/.env -- npm run typeorm -- -d ./apps/basket/typeorm-migrations-datasource.ts migration:revert",
+    "docker:auth:migration:run": "dotenv -e ./apps/auth/.docker.env -- npm run typeorm migration:run -- -d ./apps/auth/typeorm-migrations-datasource.ts",
+    "docker:catalog:migration:run": "dotenv -e ./apps/catalog/.docker.env -- npm run typeorm migration:run -- -d ./apps/catalog/typeorm-migrations-datasource.ts",
+    "docker:basket:migration:run": "dotenv -e ./apps/basket/.docker.env -- npm run typeorm migration:run -- -d ./apps/basket/typeorm-migrations-datasource.ts",
+    "docker:auth": "npm run docker:auth:migration:run; npm run docker:start auth",
+    "docker:basket": "npm run docker:basket:migration:run; npm run docker:start basket",
+    "docker:catalog": "npm run docker:catalog:migration:run; npm run docker:start catalog"
   },
   "dependencies": {
     "@apollo/federation": "^0.38.1",

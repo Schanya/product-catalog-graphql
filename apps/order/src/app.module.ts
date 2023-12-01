@@ -15,12 +15,14 @@ import {
   KafkaModule,
   LoggerMiddleware,
   WinstonLoggerModule,
+  getEnvironmentFile,
 } from '@libs/common';
 import { CoreModule } from './modules/core.module';
 
+const envFilePath = `./apps/order/${getEnvironmentFile(process.env.NODE_ENV)}`;
 const DefinitionConfigModule = ConfigModule.forRoot({
   isGlobal: true,
-  envFilePath: './apps/order/.env',
+  envFilePath: envFilePath,
 });
 
 const DefinitionMongoModule = MongooseModule.forRootAsync({

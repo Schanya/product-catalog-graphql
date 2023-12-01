@@ -6,6 +6,7 @@ import { JwtService } from './jwt.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Token } from './entities';
 import { UsersModule } from '../users/users.module';
+import { getEnvironmentFile } from '@libs/common';
 
 const DefineNestJwtModule = NestJwtModule.registerAsync({
   useFactory: async (configServie: ConfigService) => ({
@@ -17,9 +18,10 @@ const DefineNestJwtModule = NestJwtModule.registerAsync({
   inject: [ConfigService],
 });
 
+const envFilePath = `./apps/auth/${getEnvironmentFile(process.env.NODE_ENV)}`;
 const DefinitionConfigModule = ConfigModule.forRoot({
   isGlobal: true,
-  envFilePath: './apps/auth/.env',
+  envFilePath: envFilePath,
 });
 
 @Module({

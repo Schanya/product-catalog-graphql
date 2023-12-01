@@ -1,0 +1,15 @@
+PORT=3000
+
+CATALOG_NAME="catalog"
+CATALOG_URL="http://catalog:3001/graphql"
+
+AUTH_NAME="auth"
+AUTH_URL="http://auth:3002/graphql"
+
+BASKET_NAME="basket"
+BASKET_URL="http://basket:3003/graphql"
+
+ORDER_NAME="order"
+ORDER_URL="http://order:3004/graphql"
+
+ACCESS_TOKEN_SECRET="secret"

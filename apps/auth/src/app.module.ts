@@ -7,7 +7,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { LoggerMiddleware, WinstonLoggerModule } from '@libs/common';
+import {
+  LoggerMiddleware,
+  WinstonLoggerModule,
+  getEnvironmentFile,
+} from '@libs/common';
 
 import { typeOrmOptions } from './configs';
 
@@ -28,9 +32,10 @@ const DefinitionTypeOrmModule = TypeOrmModule.forRootAsync({
   inject: [ConfigService],
 });
 
+const envFilePath = `./apps/auth/${getEnvironmentFile(process.env.NODE_ENV)}`;
 const DefinitionConfigModule = ConfigModule.forRoot({
   isGlobal: true,
-  envFilePath: './apps/auth/.env',
+  envFilePath: envFilePath,
 });
 
 @Module({
