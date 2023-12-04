@@ -9,6 +9,7 @@ import {
   JwtStrategy,
   LoggerMiddleware,
   WinstonLoggerModule,
+  getEnvironmentFile,
 } from '@libs/common';
 
 import { graphqlFederationOptions } from './configs';
@@ -23,9 +24,12 @@ const DefinitionGraphQLModule =
     inject: [ConfigService],
   });
 
+const envFilePath = `./apps/gateway/${getEnvironmentFile(
+  process.env.NODE_ENV,
+)}`;
 const DefinitionConfigModule = ConfigModule.forRoot({
   isGlobal: true,
-  envFilePath: './apps/gateway/.env',
+  envFilePath: envFilePath,
 });
 
 @Module({

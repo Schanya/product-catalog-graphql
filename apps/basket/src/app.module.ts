@@ -15,6 +15,7 @@ import {
   KafkaModule,
   LoggerMiddleware,
   WinstonLoggerModule,
+  getEnvironmentFile,
 } from '@libs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -35,9 +36,10 @@ const DefinitionTypeOrmModule = TypeOrmModule.forRootAsync({
   inject: [ConfigService],
 });
 
+const envFilePath = `./apps/basket/${getEnvironmentFile(process.env.NODE_ENV)}`;
 const DefinitionConfigModule = ConfigModule.forRoot({
   isGlobal: true,
-  envFilePath: './apps/basket/.env',
+  envFilePath: envFilePath,
 });
 
 const DefinitionMongoModule = MongooseModule.forRootAsync({
