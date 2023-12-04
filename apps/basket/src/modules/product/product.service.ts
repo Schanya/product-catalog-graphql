@@ -6,7 +6,7 @@ import { Product } from './entities/product.entity';
 import { ClientKafka, RpcException } from '@nestjs/microservices';
 import { CreateProductDto, UpdateProductDto } from './dto';
 import { UsersProducts } from '../user-product/entities';
-import { BasketMessage } from '@libs/common';
+import { BasketMessage, EmitEvent } from '@libs/common';
 
 @Injectable()
 export class ProductsService {
@@ -47,11 +47,9 @@ export class ProductsService {
       ...productEntity,
     });
 
-    await this.basketClient
-      .emit(BasketMessage.UPDATE_MONGO, {
-        product: updateProductDto,
-      })
-      .toPromise();
+    await this._emitBasketEvent(BasketMessage.UPDATE_MONGO, {
+      product: updateProductDto,
+    });
 
     return updatedProduct;
   }
@@ -99,5 +97,15 @@ export class ProductsService {
     const createdProduct = await this.productRepository.save(productEntity);
 
     return createdProduct;
+  }
+
+  private async _emitBasketEvent<T>(pattern: string, data: any): Promise<T> {
+    const res = await EmitEvent<T>({
+      client: this.basketClient,
+      pattern,
+      data,
+    });
+
+    return res;
   }
 }

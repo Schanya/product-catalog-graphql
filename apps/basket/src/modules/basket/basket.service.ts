@@ -3,12 +3,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateBasketDto, UpdateBasketDto } from './dto';
 import { Basket, Product } from './mongo-schemas';
+import { BasketEntity } from './entities';
 
 @Injectable()
 export class BasketService {
   constructor(@InjectModel('Basket') private basketRepository: Model<Basket>) {}
 
-  async readBasketByUserId(userId: number): Promise<any> {
+  async readBasketByUserId(userId: number): Promise<BasketEntity> {
     const basket = await this.basketRepository.aggregate([
       { $match: { userId } },
       {
@@ -26,7 +27,7 @@ export class BasketService {
       },
     ]);
 
-    return basket[0];
+    return basket.length ? basket[0] : null;
   }
 
   async deleteProductsFromBasket(

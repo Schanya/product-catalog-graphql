@@ -1,0 +1,215 @@
+version: '3.8'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    networks: 
+      - broker-kafka
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    networks: 
+      - broker-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    networks: 
+      - broker-kafka
+    depends_on:
+      - kafka
+    ports:
+      - 19000:9000
+    environment:
+      KAFKA_BROKERCONNECT: kafka:29092
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - redis
+
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    restart: always
+    networks:
+      - mongodb
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./apps/gateway/Dockerfile
+    command: npm run docker:start
+    depends_on:
+      - auth
+      - basket
+      - catalog
+      - order
+      - kafka
+    env_file:
+      - ./apps/gateway/.envDocker
+    environment:
+    - NODE_ENV=docker
+    ports:
+      - 3000:3000
+    networks:
+      - dbnet
+      - mongodb
+
+  auth:
+    build:
+      context: .
+      dockerfile: ./apps/auth/Dockerfile
+    command: npm run docker:auth
+    depends_on:
+      - auth_db
+      - kafka
+    env_file:
+      - ./apps/auth/.envDocker
+    environment:
+    - NODE_ENV=docker
+    ports:
+      - 3002:3002
+    networks:
+      - dbnet
+      - auth_db
+      - mongodb
+
+  basket:
+    build:
+      context: .
+      dockerfile: ./apps/basket/Dockerfile
+    command: npm run docker:basket
+    depends_on:
+      - basket_db
+      - kafka
+      - mongodb
+      - redis
+    env_file:
+      - ./apps/basket/.envDocker
+    environment:
+    - NODE_ENV=docker
+    ports:
+      - 3003:3003
+    networks:
+      - dbnet
+      - basket_db
+      - broker-kafka
+      - redis
+      - mongodb
+
+  catalog:
+    build:
+      context: .
+      dockerfile: ./apps/catalog/Dockerfile
+    command: npm run docker:catalog
+    depends_on:
+      - catalog_db
+      - kafka
+      - redis
+    env_file:
+      - ./apps/catalog/.envDocker
+    environment:
+    - NODE_ENV=docker
+    ports:
+      - 3001:3001
+    networks:
+      - dbnet
+      - catalog_db
+      - broker-kafka
+      - redis
+      - mongodb
+
+  order:
+    build:
+      context: .
+      dockerfile: ./apps/order/Dockerfile
+    command: npm run docker:start order
+    depends_on:
+      - kafka
+      - mongodb
+      - redis
+    env_file:
+      - ./apps/order/.envDocker
+    environment:
+    - NODE_ENV=docker
+    ports:
+      - 3004:3004
+    networks:
+      - dbnet
+      - broker-kafka
+      - redis
+      - mongodb
+
+  auth_db:
+    image: postgres:13.5
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=auth_db
+      - POSTGRES_HOST=auth_db
+      - POSTGRES_PORT=5432
+    volumes:
+      - auth:/var/lib/postgresql/data
+    networks:
+      - auth_db
+
+  basket_db:
+    image: postgres:13.5
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=basket_db
+      - POSTGRES_HOST=basket_db
+      - POSTGRES_PORT=5432
+    volumes:
+      - basket:/var/lib/postgresql/data
+    networks:
+      - basket_db
+
+  catalog_db:
+    image: postgres:13.5
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=catalog_db
+      - POSTGRES_HOST=catalog_db
+      - POSTGRES_PORT=5432
+    volumes:
+      - catalog:/var/lib/postgresql/data
+    networks:
+      - catalog_db
+
+volumes:
+  auth:
+  catalog:
+  basket:
+  order:
+  
+networks:
+  dbnet:
+  catalog_db:
+  auth_db:
+  basket_db:
+  redis:
+  mongodb:
+  broker-kafka:
+    driver: bridge  
+
+

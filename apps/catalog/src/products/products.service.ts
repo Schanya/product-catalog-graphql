@@ -6,7 +6,7 @@ import { Product } from './entities/product.entity';
 import { In, Repository } from 'typeorm';
 import { FindProductInput, SendProductToBasketInput } from './dto';
 import { ClientKafka, RpcException } from '@nestjs/microservices';
-import { BasketMessage, JwtPayloadInput } from '@libs/common';
+import { BasketMessage, EmitEvent, JwtPayloadInput } from '@libs/common';
 
 @Injectable()
 export class ProductsService {
@@ -54,11 +54,9 @@ export class ProductsService {
       ...productEntity,
     });
 
-    await this.basketClient
-      .emit(BasketMessage.UPDATE_PG, {
-        product: updatedProduct,
-      })
-      .toPromise();
+    await this._emitBasketEvent(BasketMessage.UPDATE_PG, {
+      product: updatedProduct,
+    });
 
     return updatedProduct;
   }
@@ -72,11 +70,9 @@ export class ProductsService {
 
     const data = await this.productRepository.delete(id);
 
-    await this.basketClient
-      .emit(BasketMessage.DELETE_PODUCT_PG, {
-        productId: id,
-      })
-      .toPromise();
+    await this._emitBasketEvent(BasketMessage.DELETE_PODUCT_PG, {
+      productId: id,
+    });
 
     return data && data.affected > 0;
   }
@@ -89,13 +85,11 @@ export class ProductsService {
 
     await this.checkTotalAmount(product, sendProductToBasketInput.quantity);
 
-    await this.basketClient
-      .emit(BasketMessage.SEND_PG, {
-        product,
-        userId: payload.id,
-        amount: sendProductToBasketInput.quantity,
-      })
-      .toPromise();
+    await this._emitBasketEvent(BasketMessage.SEND_PG, {
+      product,
+      userId: payload.id,
+      amount: sendProductToBasketInput.quantity,
+    });
 
     return 'Sent successfully';
   }
@@ -127,5 +121,15 @@ export class ProductsService {
         'Specified  quantity of the product is more than what is in the catalog',
       );
     }
+  }
+
+  private async _emitBasketEvent<T>(pattern: string, data: any): Promise<T> {
+    const res = await EmitEvent<T>({
+      client: this.basketClient,
+      pattern,
+      data,
+    });
+
+    return res;
   }
 }
