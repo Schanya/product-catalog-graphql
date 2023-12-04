@@ -1,4 +1,4 @@
-FROM uselagoon/node-18
+FROM node
 
 WORKDIR /usr/src/app
 

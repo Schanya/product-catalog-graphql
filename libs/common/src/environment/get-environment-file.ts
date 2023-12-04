@@ -1,4 +1,4 @@
-import { ENV } from './env.constants';
+import { ENV } from '../constants/env.constants';
 
 export function getEnvironmentFile(env: string) {
   if (!env) {

@@ -67,6 +67,7 @@ services:
       - 3000:3000
     networks:
       - dbnet
+      - mongodb
 
   auth:
     build:
@@ -85,6 +86,7 @@ services:
     networks:
       - dbnet
       - auth_db
+      - mongodb
 
   basket:
     build:
@@ -129,6 +131,7 @@ services:
       - catalog_db
       - broker-kafka
       - redis
+      - mongodb
 
   order:
     build:
