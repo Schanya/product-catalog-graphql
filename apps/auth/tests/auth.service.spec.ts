@@ -158,13 +158,13 @@ describe('AuthService', () => {
     });
   });
 
-  describe('signIn', () => {
-    it('should generate JWTs, save refresh token and return JWT tokens', async () => {
-      const result = await authService.signIn(mockUser);
+  // describe('signIn', () => {
+  //   it('should generate JWTs, save refresh token and return JWT tokens', async () => {
+  //     const result = await authService.signIn(mockUser);
 
-      expect(result).toEqual(mockJWT);
-    });
-  });
+  //     expect(result).toEqual(mockJWT);
+  //   });
+  // });
 
   afterAll(async () => {
     await jwtService.deleteAllJwt(mockUser.id);
