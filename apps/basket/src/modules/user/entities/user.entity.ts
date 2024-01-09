@@ -1,11 +1,5 @@
 import { Directive, Field, Int, ObjectType } from '@nestjs/graphql';
-import {
-  BaseEntity,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  PrimaryColumn,
-} from 'typeorm';
+import { BaseEntity, Entity, ManyToMany, PrimaryColumn } from 'typeorm';
 import { Product } from '../../product/entities';
 
 @ObjectType()

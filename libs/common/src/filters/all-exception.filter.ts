@@ -1,5 +1,4 @@
 import {
-  ArgumentsHost,
   Catch,
   ExceptionFilter,
   HttpException,
@@ -10,9 +9,7 @@ import { ApolloError } from 'apollo-server-express';
 
 @Catch()
 export class AllExceptionFilter implements ExceptionFilter {
-  catch(exception: any, host: ArgumentsHost) {
-    const req = host.getArgByIndex(2).req;
-
+  catch(exception: any) {
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
 

@@ -1,5 +1,3 @@
-import { Currency } from '@libs/common';
-
 export class Product {
   id: number;
 

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { UsersModule } from '../src/modules/users/users.module';
 import { User } from '../src/modules/users/entities';
 import { Token } from '../src/modules/jwt/entities';
 import { CoreModule } from '../src/modules/core.module';

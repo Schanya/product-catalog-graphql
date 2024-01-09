@@ -84,7 +84,7 @@ export class ProductsService {
     }
   }
 
-  private async doesProductExist(id: number): Promise<Boolean> {
+  private async doesProductExist(id: number): Promise<boolean> {
     const doesProductExist = await this.productRepository.exist({
       where: { id },
     });

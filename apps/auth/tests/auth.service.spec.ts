@@ -19,14 +19,14 @@ describe('AuthService', () => {
   let userService: UsersService;
 
   let userRepository: Repository<User>;
-  let userRepositoryToken: string | Function = getRepositoryToken(User);
+  const userRepositoryToken = getRepositoryToken(User);
 
   let authService: AuthService;
 
   let jwtService: JwtService;
 
   let jwtRepository: Repository<Token>;
-  let jwtRepositoryToken: string | Function = getRepositoryToken(Token);
+  const jwtRepositoryToken = getRepositoryToken(Token);
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -160,8 +160,6 @@ describe('AuthService', () => {
 
   describe('signIn', () => {
     it('should generate JWTs, save refresh token and return JWT tokens', async () => {
-      const saveJwtSpy = jest.spyOn(jwtService, 'saveJwt');
-
       const result = await authService.signIn(mockUser);
 
       expect(result).toEqual(mockJWT);

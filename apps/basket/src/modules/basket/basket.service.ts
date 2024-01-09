@@ -43,7 +43,7 @@ export class BasketService {
   }
 
   async deleteProductIfDeletedInCatalog(productId: number): Promise<void> {
-    const deleteResult = await this.basketRepository.updateOne({
+    await this.basketRepository.updateOne({
       $pull: { products: { id: productId } },
     });
   }

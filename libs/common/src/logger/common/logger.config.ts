@@ -1,4 +1,4 @@
-import { LoggerOptions, createLogger, format, transports } from 'winston';
+import { LoggerOptions, createLogger, format } from 'winston';
 import * as winstonMongoDB from 'winston-mongodb';
 import { customFormat } from './logger.format';
 
